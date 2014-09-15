@@ -15,13 +15,24 @@ varsion <- version[[13]]
 old.loc <- Sys.getlocale("LC_TIME")
 ```
 
-<h1 align="center">Introduction</h1>
-<hr width="75%" align="center" noshade>
+<h1 align="center">Motivation</h1>
+<hr width="100%"  noshade size=4>
 
 This work is an attempt at a **replication** of Angelini Paolo and Andrea Generale's 2008 article entitled *On the Evolution of Firm Size Distributions* and published in the American Economic Review<sup>1</sup>.Econometric study for the original article was implemented in SAS statistical analysis software, in this replication R a different statistical analysis software will be used.The goal of this replication work is to indeed replicate findings of the original authors of the article, and extend their results.<br>
 The raw data and code books pdf can be found [here](http://www.aeaweb.org/aer/data/mar08/20050397_data.zip) for downloading.<br>
 The following analysis was made using the `r time` version of the raw data, and `r varsion` version of R combined with RStudio Desktop v0.98.1056 front.<br> 
+<br>
+<br>
 
+<h1 align="center">Introduction</h1>
+<hr width="100%" noshade size=4>
+hereinafter the study
+
+<br>
+<br>
+
+<h1 align="center">Loading and pre-processing raw data</h1>
+<hr width=100% noshade size=4>
 <h4 align="left"> A - Loading the Data</h4>
 This chuck of R code uses `dowloader` library to download directly data from the url specified in *url* symbol. The data thus obtained is unzipped using `unzip` function and stored in *ori* symbol. After data is coerced into a matrix aspect and  assigned *mat* symbol, first column - second line of said matrix, corresponding to raw data, is loaded using `read.dta` function of `foreign` library.The raw is therefore named *data* in R.<br>
 Also `shell.exec` function is used to open the code book for user automatically. Make sure you have a pdf reader installed.
@@ -36,7 +47,7 @@ mat <- matrix(ori)
 data <- read.dta(mat[2,1])
 shell.exec(file.path(getwd(), "readme.pdf"))
 ```
-
+<br>
 <h4 align="left"> B - Pre-processing the Data</h4>
 First a quick look at the names of columns in the data set charged in R environment to compare it with **readme.pdf** listed variables, and also the classes of all variables to match with information in readme file.
 ```{r}
@@ -46,13 +57,13 @@ for(i in 1:ncol(data)) {classes[i] <- class(data[,i])} # for each column in data
 names #displaying names
 classes# displaying classes
 ```
-<br>As can be seen above although all variables listed in the readme file are present in our data set, all of them seem to have a numeric class in R. However, variable *anno* should be treated as a variable of **Date class** and variables *ACO*, *AIM*, *SALES*, *sales*, *UTIL*, *UTILN*, *OF*, *IMIM* and *IMTE* should have **class numeric**, while *the rest* should have **class integer**.<br>
+<br>As can be seen above although all variables listed in the readme file are present in our data set, all of them seem to have a numeric class in R. However, variable *anno* should be treated as a variable of **Date class** and variables *ACO*, *AIM*, *SALES*, *sales*, *UTIL*, *UTILN*, *OF*, *IMIM* and *IMTE* should have **class numeric**, *indentif* **class factor**, while *the rest* should have **class integer**.<br>
 In the following chunk of code does exactly that.
 ```{r}
-#names(data) #displaying column names in data
 suppressWarnings(for(i in 1:14) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
 suppressWarnings(for(i in 23:ncol(data)) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
 data$anno <- as.Date(paste(as.character(data$anno),paste("01","01",sep="-"),sep="-"),"%Y-%m-%d") # changing class for anno variable to date
+data$identif <- as.factor(data$identif) # indentif number is treated as factor
 classes <- rep(0, times=ncol(data)) # creating vector to store classes of data column
 for(i in 1:ncol(data)) {classes[i] <- class(data[,i])} # for each column in data finding class storing it in vector "classes" 
 classes # displaying classes
@@ -62,11 +73,28 @@ Now that this pre-processing of data is finished, the process of tidying the dat
 <br>
 <br>
 <h1 align="center">Generating estimation data sets</h1>
-<h4 align="center">Transcribing dataset.do, open9201.dta, closed9201.dta and tempstime_1.dta</h3>
-<hr width="75%" align="center" noshade>
+<h4 align="center">Transcribing dataset.do and obtaining open9201.dta, closed9201.dta and tempstime_1.dta</h3>
+<hr width="100%" noshade size=4>
 
-<h6 align="left">1 - tempstime_1.dta</h6>
+<h4 align="left"> A - tempstime_1.dta</h4>
+The code chunks in the following sub-part of this document loads the Mediocredito Survey & Balance Sheet data containing information for each individual firms for each four years separetely, generates and saves relevant variables used in the original paper.<br>
+Data from each different years need slightly adjusted code to process them compared to one another.<br>
 
+<h6 align="left">1 - Creating intermediary data set csur92</h6>
+Generating data for firms observed in 1992, each have unique indentifier that they keep over the years.<br>
+Here only observations current to 1992 for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the year before (1991) in order to be able to calculate labor growth current year 1992.<br>
+```{r}
+csur92 <- subset(data,ind92==1 & dip91!="." & dip91>0)
+```
+Now relevant variables are created.
+```{r}
+library(tidyr)
+csur92$lsize <- data.frame(log(csur92$sales))
+csur92$razd <- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &csur92$d17_2==9 & csur92$d17_3==9 & csur92$d17_4==9,NA,0)))
+csur92$duacq <- as.factor(ifelse(csur92$acqui==1,1,0))
+csur92$dusco <- as.factor(ifelse(csur92$scorpo==1,1,0))
+spread then create version for each sauf existing and col of one and zeros and then use spread
+```
 
 
 
