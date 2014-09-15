@@ -1,0 +1,74 @@
+---
+title: "On the Evolution of Firm Size Distributions"
+author: "Woldetsadick Selam Getachew"
+date: "Monday, September 15, 2014"
+output: html_document
+---
+<h4,align="left>Replication of findings [A,Paolo & A,Generale (2008)](http://www.jstor.org/discover/10.2307/29729977?uid=3737864&uid=2&uid=4&sid=21104166174021)<sup>1</sup></h4>
+<br>
+```{r,echo = FALSE,results='hide'}
+old.loc <- Sys.getlocale("LC_TIME")
+Sys.setlocale(category = "LC_TIME", locale="English")
+time <- format(Sys.time(),"%a, %b %d %Y, %X")
+version <- R.Version()
+varsion <- version[[13]]
+old.loc <- Sys.getlocale("LC_TIME")
+```
+
+<h1 align="center">Introduction</h1>
+<hr width="75%" align="center" noshade>
+
+This work is an attempt at a **replication** of Angelini Paolo and Andrea Generale's 2008 article entitled *On the Evolution of Firm Size Distributions* and published in the American Economic Review<sup>1</sup>.Econometric study for the original article was implemented in SAS statistical analysis software, in this replication R a different statistical analysis software will be used.The goal of this replication work is to indeed replicate findings of the original authors of the article, and extend their results.<br>
+The raw data and code books pdf can be found [here](http://www.aeaweb.org/aer/data/mar08/20050397_data.zip) for downloading.<br>
+The following analysis was made using the `r time` version of the raw data, and `r varsion` version of R combined with RStudio Desktop v0.98.1056 front.<br> 
+
+<h4 align="left"> A - Loading the Data</h4>
+This chuck of R code uses `dowloader` library to download directly data from the url specified in *url* symbol. The data thus obtained is unzipped using `unzip` function and stored in *ori* symbol. After data is coerced into a matrix aspect and  assigned *mat* symbol, first column - second line of said matrix, corresponding to raw data, is loaded using `read.dta` function of `foreign` library.The raw is therefore named *data* in R.<br>
+Also `shell.exec` function is used to open the code book for user automatically. Make sure you have a pdf reader installed.
+```{r}
+library(foreign)
+library(downloader)
+setwd("C:/Users/anton_000/Documents/Downloads/Desktop/Replication")
+url <- "http://www.aeaweb.org/aer/data/mar08/20050397_data.zip"
+download(url,"datasur.dat", mode="wb")
+ori <- unzip("datasur.dat")
+mat <- matrix(ori)
+data <- read.dta(mat[2,1])
+shell.exec(file.path(getwd(), "readme.pdf"))
+```
+
+<h4 align="left"> B - Pre-processing the Data</h4>
+First a quick look at the names of columns in the data set charged in R environment to compare it with **readme.pdf** listed variables, and also the classes of all variables to match with information in readme file.
+```{r}
+names <- names(data) #storing column names in "names" vector
+classes <- rep(0, times=ncol(data)) # creating vector to store classes of data column
+for(i in 1:ncol(data)) {classes[i] <- class(data[,i])} # for each column in data finding class storing it in vector "classes" 
+names #displaying names
+classes# displaying classes
+```
+<br>As can be seen above although all variables listed in the readme file are present in our data set, all of them seem to have a numeric class in R. However, variable *anno* should be treated as a variable of **Date class** and variables *ACO*, *AIM*, *SALES*, *sales*, *UTIL*, *UTILN*, *OF*, *IMIM* and *IMTE* should have **class numeric**, while *the rest* should have **class integer**.<br>
+In the following chunk of code does exactly that.
+```{r}
+#names(data) #displaying column names in data
+suppressWarnings(for(i in 1:14) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
+suppressWarnings(for(i in 23:ncol(data)) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
+data$anno <- as.Date(paste(as.character(data$anno),paste("01","01",sep="-"),sep="-"),"%Y-%m-%d") # changing class for anno variable to date
+classes <- rep(0, times=ncol(data)) # creating vector to store classes of data column
+for(i in 1:ncol(data)) {classes[i] <- class(data[,i])} # for each column in data finding class storing it in vector "classes" 
+classes # displaying classes
+```
+It can be seen above that classes of variables in the data set are made to match expectations in view of code book. Also note that month and day of observations have been set to default 01-01 because they are unavailable in raw data. <br>
+Now that this pre-processing of data is finished, the process of tidying the data and making it "regression" friendly can start. 
+<br>
+<br>
+<h1 align="center">Generating estimation data sets</h1>
+<h4 align="center">Transcribing dataset.do, open9201.dta, closed9201.dta and tempstime_1.dta</h3>
+<hr width="75%" align="center" noshade>
+
+<h6 align="left">1 - tempstime_1.dta</h6>
+
+
+
+
+<br>
+<sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.
