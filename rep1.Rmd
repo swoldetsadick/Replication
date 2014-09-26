@@ -157,7 +157,8 @@ csur95 <- subset(data,ind95==1 & dip94!="." & dip94>0)
 csur95$lsize <- log(csur95$sales)
 ```
 The baseline definition of financial constraints in the 1995 survey is defined somehow differently compared to 1992 survey. The construction of **razd** variable indicating financial constraint depends on variables *NONOTTEN* and *AVREBACC* in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions "Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?" and "Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?" respectively.<br>
-If the first question was answered with a yes, then the firm is considered as financially constrained and variable **razd** will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.
+If the first question was answered with a yes, then the firm is considered as financially constrained and variable **razd** will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.<br>
+A copy of razd variable is made in variable **raz95d**.
 ```{r, cache = TRUE}
 #Dummy Rationing Baseline def.;
 csur95$razd <- ifelse(csur95$nonotten==1,1,ifelse(csur95$nonotten=="." & csur95$avrebacc==".",NA,0))
