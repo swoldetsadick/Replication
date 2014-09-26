@@ -1,4 +1,5 @@
 base
 downloader
 foreign
+lubridate
 plyr

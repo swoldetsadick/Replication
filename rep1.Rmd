@@ -95,7 +95,7 @@ csur92$lsize <- data.frame(log(csur92$sales))
 ```
 In the next chunk of code, dummies establishing baseline definition of rationing, or financial constraint, are constructed out of *d17_1*, *d17_2*, *d17_3* or *d17_4* variables.These variables are coded answers for questions of whether or not a firm encountered difficulties in financing their last investment project due to insufficient cash flow, lack of collateral, insufficient long-term finance or high cost of debt respectively. In this case multiple answers were allowed with an intensity ranking from 1 to 3, missing values being coded as equal to 9.<br>
 As indicated in p.427 of the original article, "In the 1992 survey, we define a firm as constrained if at least one question of the first four causes was given the highest importance." Hence the new rationing variable **razd** takes a value of 1, indicating a financially constrained firm, if above conditions are met, NA if observations for all four original variables are equal to 9, or missing, 0 in any other case.<br>
-A duplicated of razd variable therefore created is stored under the label **raz92d**.
+A duplicated of **razd** variable therefore created is stored under the label **raz92d**.
 ```{r, cache = TRUE}
 csur92$razd <- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &csur92$d17_2==9 & csur92$d17_3==9 & csur92$d17_4==9,NA,0)))
 csur92$raz92d <- csur92$razd
@@ -158,7 +158,7 @@ csur95$lsize <- log(csur95$sales)
 ```
 The baseline definition of financial constraints in the 1995 survey is defined somehow different compared to 1992 survey. The construction of **razd** variable indicating financial constraint depends on variables *NONOTTEN* and *AVREBACC* in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions "Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?" and "Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?" respectively.<br>
 If the first question was answered with a yes, then the firm is considered as financially constrained and variable **razd** will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.<br>
-A copy of razd variable is made in variable **raz95d**.
+A copy of **razd** variable is made in variable **raz95d**.
 ```{r, cache = TRUE}
 #Dummy Rationing Baseline def.;
 csur95$razd <- ifelse(csur95$nonotten==1,1,ifelse(csur95$nonotten=="." & csur95$avrebacc==".",NA,0))
@@ -359,5 +359,52 @@ csur01[grep("^pav$",colnames(csur01))] <- NULL
 csur01 = csur01[order(csur01$identif),]
 ```
 <h4 align="left"> B - 1992 - 1995 and 1998 - 2001 surveys data sets & Main Data Sets Corrections</h4>
+The 1992 - 1995 and 1998 - 2001 surveys data sets, eliminate both firms with errors in the age field of firms, and fills them if age is missing. However the latter can be done only for firms present on both years of each data set. They also create a dummy for persistently constrained firms.<br> Using these additional information, one can complete the main data sets created in section A above.
+<h6 align="left">1 - 1992 - 1995 survey data set.</h6>
+A new data set <u>csuro92</u> is created out of <u>csur92</u> data set, by taking only variables **raz92d** as defined in section A1, variables **eta92** and **identif**, present in original data set and representing the age of the firm in 1992 and a unique firm identifier respectively but exclusively for observations made on 1991.
+```{r, cache = TRUE}
+suppressMessages(library(lubridate))
+csuro92 <- subset(csur92, year(csur92$anno) == 1991)
+csuro92 <- data.frame(csuro92$identif, csuro92$eta92, csuro92$raz92d)
+colnames(csuro92) <- c("identif", "eta92", "raz92d")
+```
+A new data set <u>csuro95</u> is created out of <u>csur95</u> data set, by taking only variables **raz95d** as defined in section A2, variables **eta95** and **identif**, present in original data set and representing the age of the firm in 1995 and a unique firm identifier respectively but exclusively for observations made on 1994.
+```{r, cache = TRUE}
+suppressMessages(library(lubridate))
+csuro95 <- subset(csur95, year(csur95$anno) == 1994)
+csuro95 <- data.frame(csuro95$identif, csuro95$eta95, csuro95$raz95d)
+colnames(csuro95) <- c("identif", "eta95", "raz95d")
+
+merge1 <- merge(csuro92, csuro95, by=c("identif"), all=TRUE)
+merge1 <- merge1[order(merge1$identif), ]
+```
+In the end, the two new data sets <u>csuro92</u> and <u>csuro95</u> are merged by **identif**, filling all very probable empty observations by an NA. The obtained data set is ordered by identif, and named <u>merge1</u>.<br>
+What is done in the code chunk below is to compute the missing age data of a firm present in both surveys, but whose age in one survey is missing. Hence, a firm present in both 95 and 92 survey whose age in 95 is there, but for whom age in 92 is missing or illogical, age in 92 is set equal to age in 95 - 3.<br>
+Similarly, a firm present in both 95 and 92 survey whose age in 92 is there, but for whom age in 95 is missing or illogical, age in 95 is set equal to age in 92 + 3. In any other case original observations of age from data sets <u>csuro92</u> and <u>csuro95</u> are kept. These new ages are stored in variables called **eta92c** and **eta95c**. Original **eta92** and **eta95** age variables are deleted.<br>
+```{r, cache = TRUE}
+#uses age from one survey to compute age.survey
+merge1$eta92c <- ifelse((is.na(merge1$eta92)|merge1$eta92<0) & (!is.na(merge1$eta95) ) & (is.na(merge1$eta95) & is.na(merge1$raz95d))|(is.na(merge1$eta92)&is.na(merge1$raz92d)),merge1$eta95-3,merge1$eta92)
+merge1$eta95c <- ifelse((is.na(merge1$eta95)|merge1$eta95<0) & (!is.na(merge1$eta92) ) & (is.na(merge1$eta95) & is.na(merge1$raz95d))|(is.na(merge1$eta92)&is.na(merge1$raz92d)),merge1$eta92+3,merge1$eta95)    
+merge1[grep("^eta92$",colnames(merge1))] <- NULL
+merge1[grep("^eta95$",colnames(merge1))] <- NULL
+```
+What is done in the next code chunk is to create a **deta** variable that stores the differences in age between 1995 and 1992 as proxied by **eta95c** and **eta92c** as seen above. Then observations with large error in age field, or for deta superior to 5 or inferior to 1, observation is deleted. Next small differences in age field, for deta = 2 and = 4 the difference is squared to 3, by replacing value of **eta95c** by value of **eta92c** plus 3.
+```{r, cache = TRUE}
+#Drops firms in the balanced sample with large errors in the age field
+merge1$deta <- merge1$eta95c - merge1$eta92c
+merge1 <- subset(merge1,(merge1$deta > 1|is.na(merge1$deta)) & (merge1$deta < 5 |is.na(merge1$deta)))
+#forces small differences in age to square to 3
+merge1$eta95c <- ifelse((merge1$deta==2| merge1$deta==4), merge1$eta92c + 3, merge1$eta95c)
+```
+In the last code chunk of this part, a dummy variable named **persist** is created as an indicator of persistently constrained firms. If the firm was financially constrained in 92 (**raz92d** equals 1) and in 95 (**raz95d** equals 1) then the firm is considered persistently financially constrained. Then **perist** equals 1, or 0 in any other case. Only variables **indentif**, **eta92c**, **eta95c** and **persist** are kept in the data set that is also ordered by **identif** variable.<br>
+The end data set is then stored under the name <u>temp9295</u>.
+```{r, cache = TRUE}
+merge1$persist <- ifelse((merge1$raz92d==1&merge1$raz95d==1), 1,ifelse((is.na(merge1$raz95d)&is.na(merge1$raz92d)),0,0))
+temp9295 <- data.frame(merge1$identif, merge1$eta92c, merge1$eta95c, merge1$persist)
+colnames(temp9295) <- c("identif", "eta92c", "eta95c", "persist")
+temp9295 <- subset(temp9295,!is.na(eta92c) & !is.na(eta95c))
+temp9295 <- temp9295 [order(temp9295$identif),] 
+```
+<h6 align="left">2 - 1998 - 2001 survey data set.</h6>
 <br>
 <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.
