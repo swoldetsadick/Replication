@@ -6,3 +6,5 @@ replicate findings of 1Angelini, Paolo, and Andrea Generale. 2008. “On the Evo
 16.09.2014 17h:30 -> csur92 data replicated (See details in doc)<br>
 26.09.2014 14h:33 -> csur92 description completed - started csur95<br>
 26.09.2014 19h:40 -> cusr95 finished - started csur98<br>
+26.09.2014 20h:46 -> cusr98 finished - started csur01<br>
+26.09.2014 21h:30 -> cusr01 finished - started 1992-1995<br>

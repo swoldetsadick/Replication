@@ -78,7 +78,7 @@ Now that this pre-processing of data is finished, the process of tidying the dat
 <h4 align="center">Transcribing data set.do and obtaining open9201.dta, closed9201.dta and tempstime_1.dta</h3>
 <hr width="100%" noshade size=4>
 
-<h4 align="left"> A - tempstime_1.dta</h4>
+<h4 align="left"> A - Main Data Sets</h4>
 The code chunks in the following sub-part of this document loads the Mediocredito Survey & Balance Sheet data containing information for each individual firms for each four years separately, generates and saves relevant variables used in the original paper.<br>
 Data from each different years need slightly adjusted code to process them compared to one another.<br>
 
@@ -150,7 +150,7 @@ csur92 <- csur92[order(csur92$identif),]
 ```
 <h6 align="left">2 - Creating intermediary data set csur95</h6>
 The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of **razd** variable present in the data set above, and the second in the introduction of a new variable **dugr**.<br>
-Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br>
+Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur95 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br>
 ```{r, cache = TRUE}
 csur95 <- subset(data,ind95==1 & dip94!="." & dip94>0)
 #Size as Proxied by Total Sales;
@@ -186,7 +186,7 @@ csur95$dupav4 <- ifelse(csur95$pav==4,1,0)
 #Defining Balance-Sheet Variables
         #Return on Assets
 csur95$roa <- csur95$util/(csur95$aco + csur95$aim)
-	#Financial Expenses/Operating Profits
+        #Financial Expenses/Operating Profits
 csur95$ofut <- csur95$of/(csur95$of + csur95$utiln)
 	#Share of Tangible Assets over Total Assets
 csur95$quoimm <- csur95$imte/(csur95$aco + csur95$aim)
@@ -220,7 +220,7 @@ csur95[grep("^pav$",colnames(csur95))] <- NULL
 csur95 <- csur95[order(csur95$identif),]
 ```
 <h6 align="left">3 - Creating intermediary data set csur98</h6>
-The creation of csur98 data set departs in three majors ways and in one major way from the construction of csur92 data set. First a minor adjustment in the selection of observation only contemporary to 1998.Here only observations current to 1998 (ranging 1995-1997) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1995-1997) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 98 is not negative in 1998.<br>
+The creation of csur98 data set departs in three majors ways and in one major way from the construction of csur92 data set. First a minor adjustment in the selection of observation only contemporary to 1998.Here only observations current to 1998 (ranging 1995-1997) for firms in data set are selected and saved in csur98 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1995-1997) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 98 is not negative.<br>
 Additionally a new variable **isgru** is introduced in the exact same manner as described for data set csur98.<br>
 ```{r, cache = TRUE}
 csur98 <- subset(data,ind98 == 1 & dip97 != "." & dip97 > 0 & eta98 >= 0 )
@@ -290,10 +290,74 @@ csur98[grep("isgru",colnames(csur98))] <- NULL
 csur98[grep("^pav$",colnames(csur98))] <- NULL
 
 csur98 = csur98[order(csur98$identif),]
-names(csur92)
-names(csur95)
-names(csur98)
 ```
+<h6 align="left">4 - Creating intermediary data set csur01</h6>
+Here only observations current to 2001 (ranging 1998-200) for firms in data set are selected and saved in csur01 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1998-200) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 01 is not negative.<br>
+As for the rest, the methods of creating the new variables are done in exactly the same manner as for <u>csur98</u>. Except that copies of new variable **razd** and **desi** for <u>csur01</u> data set are stored in variables **raz01d** and **desi01**.
+```{r, cache = TRUE}
+csur01 <- subset(data, ind01 == 1 & dip00 != "."  &  dip00 > 0 & eta01 >= 0)
 
+#Size as Proxied by Total Sales;
+csur01$lsize <- log(csur01$sales)
+
+#Dummy Rationing Baseline def.;
+csur01$razd <- ifelse(csur01$desi==1 & csur01$paga==1,1,ifelse(csur01$desi=="." & csur01$paga=="."& csur01$chie==".",NA,0))
+csur01$raz98d <- csur01$razd
+
+#Dummies M&A's;
+csur01$duacq <- ifelse(csur01$acqui==1,1,0)
+csur01$dusco<- ifelse(csur01$scorpo==1,1,0)
+
+#Dummy Industrial Group
+csur01$durg=ifelse(csur01$isgru==1,1,0)
+
+#4 Pavitt Sectoral Dummies;
+csur01$dupav1 <- ifelse(csur01$pav==1,1,0)
+csur01$dupav2 <- ifelse(csur01$pav==2,1,0)
+csur01$dupav3 <- ifelse(csur01$pav==3,1,0)
+csur01$dupav4 <- ifelse(csur01$pav==4,1,0)
+
+#Defining Balance-Sheet Variables
+        #Return on Assets
+csur01$roa <- csur01$util/(csur01$aco+csur01$aim)
+        #Financial Expenses/Operating Profits
+csur01$ofut <- csur01$of/(csur01$of+csur01$utiln)
+	#Share of Tangible Assets over Total Assets
+csur01$quoimm <- csur01$imte/(csur01$aco+csur01$aim)
+	#Log of Sales
+csur01$lsales <- log(csur01$sales)
+
+#Generating Percentiles for the Dummies Low Coverage - Low Collateral
+library(plyr)
+common <- data.frame(tapply(csur01$ofut, csur01$anno, quantile, probs=.75, na.rm = TRUE))
+a <- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] <- "common"
+names(a)[1] <- "common"
+common <- data.frame(rbind(common,a))
+csur01$pofut <- ifelse(csur01$anno=="1989-01-01",common[1,1],ifelse(csur01$anno=="1990-01-01",common[2,1],ifelse(csur01$anno=="1991-01-01",common[3,1],ifelse(csur01$anno=="1992-01-01",common[4,1],ifelse(csur01$anno=="1993-01-01",common[5,1],ifelse(csur01$anno=="1994-01-01",common[6,1],ifelse(csur01$anno=="1995-01-01",common[7,1],ifelse(csur01$anno=="1996-01-01",common[8,1],ifelse(csur01$anno=="1997-01-01",common[9,1],ifelse(csur01$anno=="1998-01-01",common[10,1],ifelse(csur01$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+
+common <- data.frame(tapply(csur01$quoimm, csur01$anno, quantile, probs=.25, na.rm = TRUE))
+b <- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] <- "common"
+names(b)[1] <- "common"
+common <- data.frame(rbind(common, b))
+csur01$pquoimm <- ifelse(csur01$anno=="1989-01-01",common[1,1],ifelse(csur01$anno=="1990-01-01",common[2,1],ifelse(csur01$anno=="1991-01-01",common[3,1],ifelse(csur01$anno=="1992-01-01",common[4,1],ifelse(csur01$anno=="1993-01-01",common[5,1],ifelse(csur01$anno=="1994-01-01",common[6,1],ifelse(csur01$anno=="1995-01-01",common[7,1],ifelse(csur01$anno=="1996-01-01",common[8,1],ifelse(csur01$anno=="1997-01-01",common[9,1],ifelse(csur01$anno=="1998-01-01",common[10,1],ifelse(csur01$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+
+csur01$duofut <- ifelse(csur01$ofut > csur01$pofut & csur01$ofut != ".",1,ifelse(csur01$ofut==".",".",0))
+csur01$dimm <- ifelse(csur01$quoimm < csur01$pquoimm & csur01$pquoimm != ".",1,ifelse(csur01$ofut==".",".",0))
+
+#Dummy Desiring more Credit
+
+csur01$desi <- ifelse(csur01$desi==1,1,ifelse(csur01$desi==2,0,ifelse(csur01$desi=="." & csur01$paga=="." & csur01$chie==".",NA,0)))
+csur01$desi98 <- csur01$desi
+
+csur01[grep("acqui",colnames(csur01))] <- NULL
+csur01[grep("scorpo",colnames(csur01))] <- NULL
+csur01[grep("isgru",colnames(csur01))] <- NULL
+csur01[grep("^pav$",colnames(csur01))] <- NULL
+
+csur01 = csur01[order(csur01$identif),]
+```
+<h4 align="left"> B - 1992 - 1995 and 1998 - 2001 surveys data sets & Main Data Sets Corrections</h4>
 <br>
 <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.

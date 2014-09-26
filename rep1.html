@@ -140,7 +140,7 @@ Transcribing data set.do and obtaining open9201.dta, closed9201.dta and tempstim
 <hr width="100%" noshade size="4">
 
 <h4 align="left"> 
-A - tempstime_1.dta
+A - Main Data Sets
 </h4>
 <p>The code chunks in the following sub-part of this document loads the Mediocredito Survey &amp; Balance Sheet data containing information for each individual firms for each four years separately, generates and saves relevant variables used in the original paper.<br> Data from each different years need slightly adjusted code to process them compared to one another.<br></p>
 <h6 align="left">
@@ -192,7 +192,7 @@ csur92 &lt;- csur92[order(csur92$identif),]</code></pre>
 <h6 align="left">
 2 - Creating intermediary data set csur95
 </h6>
-<p>The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of <strong>razd</strong> variable present in the data set above, and the second in the introduction of a new variable <strong>dugr</strong>.<br> Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br></p>
+<p>The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of <strong>razd</strong> variable present in the data set above, and the second in the introduction of a new variable <strong>dugr</strong>.<br> Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur95 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br></p>
 <pre class="r"><code>csur95 &lt;- subset(data,ind95==1 &amp; dip94!=&quot;.&quot; &amp; dip94&gt;0)
 #Size as Proxied by Total Sales;
 csur95$lsize &lt;- log(csur95$sales)</code></pre>
@@ -217,7 +217,7 @@ csur95$dupav4 &lt;- ifelse(csur95$pav==4,1,0)
 #Defining Balance-Sheet Variables
         #Return on Assets
 csur95$roa &lt;- csur95$util/(csur95$aco + csur95$aim)
-    #Financial Expenses/Operating Profits
+        #Financial Expenses/Operating Profits
 csur95$ofut &lt;- csur95$of/(csur95$of + csur95$utiln)
     #Share of Tangible Assets over Total Assets
 csur95$quoimm &lt;- csur95$imte/(csur95$aco + csur95$aim)
@@ -252,7 +252,7 @@ csur95 &lt;- csur95[order(csur95$identif),]</code></pre>
 <h6 align="left">
 3 - Creating intermediary data set csur98
 </h6>
-<p>The creation of csur98 data set departs in three majors ways and in one major way from the construction of csur92 data set. First a minor adjustment in the selection of observation only contemporary to 1998.Here only observations current to 1998 (ranging 1995-1997) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1995-1997) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 98 is not negative in 1998.<br> Additionally a new variable <strong>isgru</strong> is introduced in the exact same manner as described for data set csur98.<br></p>
+<p>The creation of csur98 data set departs in three majors ways and in one major way from the construction of csur92 data set. First a minor adjustment in the selection of observation only contemporary to 1998.Here only observations current to 1998 (ranging 1995-1997) for firms in data set are selected and saved in csur98 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1995-1997) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 98 is not negative.<br> Additionally a new variable <strong>isgru</strong> is introduced in the exact same manner as described for data set csur98.<br></p>
 <pre class="r"><code>csur98 &lt;- subset(data,ind98 == 1 &amp; dip97 != &quot;.&quot; &amp; dip97 &gt; 0 &amp; eta98 &gt;= 0 )
 #Size as Proxied by Total Sales;
 csur98$lsize &lt;- log(csur98$sales)</code></pre>
@@ -313,41 +313,76 @@ csur98[grep(&quot;scorpo&quot;,colnames(csur98))] &lt;- NULL
 csur98[grep(&quot;isgru&quot;,colnames(csur98))] &lt;- NULL
 csur98[grep(&quot;^pav$&quot;,colnames(csur98))] &lt;- NULL
 
-csur98 = csur98[order(csur98$identif),]
-names(csur92)</code></pre>
-<pre><code>##  [1] &quot;d17_1&quot;    &quot;d17_2&quot;    &quot;d17_3&quot;    &quot;d17_4&quot;    &quot;d17_5&quot;    &quot;dip89&quot;   
-##  [7] &quot;dip90&quot;    &quot;dip91&quot;    &quot;eta92&quot;    &quot;isgru&quot;    &quot;anno&quot;     &quot;aco&quot;     
-## [13] &quot;aim&quot;      &quot;sales&quot;    &quot;util&quot;     &quot;utiln&quot;    &quot;of&quot;       &quot;imim&quot;    
-## [19] &quot;imte&quot;     &quot;ind92&quot;    &quot;nonotten&quot; &quot;avrebacc&quot; &quot;dip92&quot;    &quot;dip93&quot;   
-## [25] &quot;dip94&quot;    &quot;eta95&quot;    &quot;ind95&quot;    &quot;dip95&quot;    &quot;dip96&quot;    &quot;dip97&quot;   
-## [31] &quot;eta98&quot;    &quot;desi&quot;     &quot;chie&quot;     &quot;paga&quot;     &quot;eta98n&quot;   &quot;ind98&quot;   
-## [37] &quot;dip98&quot;    &quot;dip99&quot;    &quot;dip00&quot;    &quot;eta01&quot;    &quot;eta01n&quot;   &quot;ind01&quot;   
-## [43] &quot;identif&quot;  &quot;lsize&quot;    &quot;razd&quot;     &quot;raz92d&quot;   &quot;duacq&quot;    &quot;dusco&quot;   
-## [49] &quot;dupav1&quot;   &quot;dupav2&quot;   &quot;dupav3&quot;   &quot;dupav4&quot;   &quot;roa&quot;      &quot;ofut&quot;    
-## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;pquoimm&quot;  &quot;duofut&quot;   &quot;dimm&quot;</code></pre>
-<pre class="r"><code>names(csur95)</code></pre>
-<pre><code>##  [1] &quot;d17_1&quot;    &quot;d17_2&quot;    &quot;d17_3&quot;    &quot;d17_4&quot;    &quot;d17_5&quot;    &quot;dip89&quot;   
-##  [7] &quot;dip90&quot;    &quot;dip91&quot;    &quot;eta92&quot;    &quot;anno&quot;     &quot;aco&quot;      &quot;aim&quot;     
-## [13] &quot;sales&quot;    &quot;util&quot;     &quot;utiln&quot;    &quot;of&quot;       &quot;imim&quot;     &quot;imte&quot;    
-## [19] &quot;ind92&quot;    &quot;nonotten&quot; &quot;avrebacc&quot; &quot;dip92&quot;    &quot;dip93&quot;    &quot;dip94&quot;   
-## [25] &quot;eta95&quot;    &quot;ind95&quot;    &quot;dip95&quot;    &quot;dip96&quot;    &quot;dip97&quot;    &quot;eta98&quot;   
-## [31] &quot;desi&quot;     &quot;chie&quot;     &quot;paga&quot;     &quot;eta98n&quot;   &quot;ind98&quot;    &quot;dip98&quot;   
-## [37] &quot;dip99&quot;    &quot;dip00&quot;    &quot;eta01&quot;    &quot;eta01n&quot;   &quot;ind01&quot;    &quot;identif&quot; 
-## [43] &quot;lsize&quot;    &quot;razd&quot;     &quot;raz95d&quot;   &quot;duacq&quot;    &quot;dusco&quot;    &quot;durg&quot;    
-## [49] &quot;dupav1&quot;   &quot;dupav2&quot;   &quot;dupav3&quot;   &quot;dupav4&quot;   &quot;roa&quot;      &quot;ofut&quot;    
-## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;pquoimm&quot;  &quot;duofut&quot;   &quot;dimm&quot;</code></pre>
-<pre class="r"><code>names(csur98)</code></pre>
-<pre><code>##  [1] &quot;d17_1&quot;    &quot;d17_2&quot;    &quot;d17_3&quot;    &quot;d17_4&quot;    &quot;d17_5&quot;    &quot;dip89&quot;   
-##  [7] &quot;dip90&quot;    &quot;dip91&quot;    &quot;eta92&quot;    &quot;anno&quot;     &quot;aco&quot;      &quot;aim&quot;     
-## [13] &quot;sales&quot;    &quot;util&quot;     &quot;utiln&quot;    &quot;of&quot;       &quot;imim&quot;     &quot;imte&quot;    
-## [19] &quot;ind92&quot;    &quot;nonotten&quot; &quot;avrebacc&quot; &quot;dip92&quot;    &quot;dip93&quot;    &quot;dip94&quot;   
-## [25] &quot;eta95&quot;    &quot;ind95&quot;    &quot;dip95&quot;    &quot;dip96&quot;    &quot;dip97&quot;    &quot;eta98&quot;   
-## [31] &quot;desi&quot;     &quot;chie&quot;     &quot;paga&quot;     &quot;eta98n&quot;   &quot;ind98&quot;    &quot;dip98&quot;   
-## [37] &quot;dip99&quot;    &quot;dip00&quot;    &quot;eta01&quot;    &quot;eta01n&quot;   &quot;ind01&quot;    &quot;identif&quot; 
-## [43] &quot;lsize&quot;    &quot;razd&quot;     &quot;raz98d&quot;   &quot;duacq&quot;    &quot;dusco&quot;    &quot;durg&quot;    
-## [49] &quot;dupav1&quot;   &quot;dupav2&quot;   &quot;dupav3&quot;   &quot;dupav4&quot;   &quot;roa&quot;      &quot;ofut&quot;    
-## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;pquoimm&quot;  &quot;duofut&quot;   &quot;dimm&quot;    
-## [61] &quot;desi98&quot;</code></pre>
+csur98 = csur98[order(csur98$identif),]</code></pre>
+<h6 align="left">
+4 - Creating intermediary data set csur01
+</h6>
+<p>Here only observations current to 2001 (ranging 1998-200) for firms in data set are selected and saved in csur01 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1998-200) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 01 is not negative.<br> As for the rest, the methods of creating the new variables are done in exactly the same manner as for <u>csur98</u>. Except that copies of new variable <strong>razd</strong> and <strong>desi</strong> for <u>csur01</u> data set are stored in variables <strong>raz01d</strong> and <strong>desi01</strong>.</p>
+<pre class="r"><code>csur01 &lt;- subset(data, ind01 == 1 &amp; dip00 != &quot;.&quot;  &amp;  dip00 &gt; 0 &amp; eta01 &gt;= 0)
+
+#Size as Proxied by Total Sales;
+csur01$lsize &lt;- log(csur01$sales)
+
+#Dummy Rationing Baseline def.;
+csur01$razd &lt;- ifelse(csur01$desi==1 &amp; csur01$paga==1,1,ifelse(csur01$desi==&quot;.&quot; &amp; csur01$paga==&quot;.&quot;&amp; csur01$chie==&quot;.&quot;,NA,0))
+csur01$raz98d &lt;- csur01$razd
+
+#Dummies M&amp;A's;
+csur01$duacq &lt;- ifelse(csur01$acqui==1,1,0)
+csur01$dusco&lt;- ifelse(csur01$scorpo==1,1,0)
+
+#Dummy Industrial Group
+csur01$durg=ifelse(csur01$isgru==1,1,0)
+
+#4 Pavitt Sectoral Dummies;
+csur01$dupav1 &lt;- ifelse(csur01$pav==1,1,0)
+csur01$dupav2 &lt;- ifelse(csur01$pav==2,1,0)
+csur01$dupav3 &lt;- ifelse(csur01$pav==3,1,0)
+csur01$dupav4 &lt;- ifelse(csur01$pav==4,1,0)
+
+#Defining Balance-Sheet Variables
+        #Return on Assets
+csur01$roa &lt;- csur01$util/(csur01$aco+csur01$aim)
+        #Financial Expenses/Operating Profits
+csur01$ofut &lt;- csur01$of/(csur01$of+csur01$utiln)
+    #Share of Tangible Assets over Total Assets
+csur01$quoimm &lt;- csur01$imte/(csur01$aco+csur01$aim)
+    #Log of Sales
+csur01$lsales &lt;- log(csur01$sales)
+
+#Generating Percentiles for the Dummies Low Coverage - Low Collateral
+library(plyr)
+common &lt;- data.frame(tapply(csur01$ofut, csur01$anno, quantile, probs=.75, na.rm = TRUE))
+a &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] &lt;- &quot;common&quot;
+names(a)[1] &lt;- &quot;common&quot;
+common &lt;- data.frame(rbind(common,a))
+csur01$pofut &lt;- ifelse(csur01$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur01$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur01$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur01$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur01$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur01$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur01$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur01$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur01$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur01$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur01$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+
+common &lt;- data.frame(tapply(csur01$quoimm, csur01$anno, quantile, probs=.25, na.rm = TRUE))
+b &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] &lt;- &quot;common&quot;
+names(b)[1] &lt;- &quot;common&quot;
+common &lt;- data.frame(rbind(common, b))
+csur01$pquoimm &lt;- ifelse(csur01$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur01$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur01$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur01$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur01$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur01$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur01$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur01$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur01$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur01$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur01$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+
+csur01$duofut &lt;- ifelse(csur01$ofut &gt; csur01$pofut &amp; csur01$ofut != &quot;.&quot;,1,ifelse(csur01$ofut==&quot;.&quot;,&quot;.&quot;,0))
+csur01$dimm &lt;- ifelse(csur01$quoimm &lt; csur01$pquoimm &amp; csur01$pquoimm != &quot;.&quot;,1,ifelse(csur01$ofut==&quot;.&quot;,&quot;.&quot;,0))
+
+#Dummy Desiring more Credit
+
+csur01$desi &lt;- ifelse(csur01$desi==1,1,ifelse(csur01$desi==2,0,ifelse(csur01$desi==&quot;.&quot; &amp; csur01$paga==&quot;.&quot; &amp; csur01$chie==&quot;.&quot;,NA,0)))
+csur01$desi98 &lt;- csur01$desi
+
+csur01[grep(&quot;acqui&quot;,colnames(csur01))] &lt;- NULL
+csur01[grep(&quot;scorpo&quot;,colnames(csur01))] &lt;- NULL
+csur01[grep(&quot;isgru&quot;,colnames(csur01))] &lt;- NULL
+csur01[grep(&quot;^pav$&quot;,colnames(csur01))] &lt;- NULL
+
+csur01 = csur01[order(csur01$identif),]</code></pre>
+<h4 align="left"> 
+B - 1992 - 1995 and 1998 - 2001 surveys data sets &amp; Main Data Sets Corrections
+</h4>
 <p><br> <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. “On the Evolution of Firm Size Distributions.” American Economic Review, 98(1): 426-38.</p>
 
 
