@@ -66,7 +66,7 @@ Motivation
 </h1>
 <hr width="100%" noshade size="4">
 
-<p>This work is an attempt at a <strong>replication</strong> of Angelini Paolo and Andrea Generale’s 2008 article entitled <em>On the Evolution of Firm Size Distributions</em> and published in the American Economic Review<sup>1</sup>.Econometric study for the original article was implemented in SAS statistical analysis software, in this replication R a different statistical analysis software will be used.The goal of this replication work is to indeed replicate findings of the original authors of the article, and extend their results.<br> The raw data and code books pdf can be found <a href="http://www.aeaweb.org/aer/data/mar08/20050397_data.zip">here</a> for downloading.<br> The following analysis was made using the Tue, Sep 16 2014, 5:24:56 PM version of the raw data, and R version 3.1.1 (2014-07-10) version of R combined with RStudio Desktop v0.98.1056 front.<br> <br> <br></p>
+<p>This work is an attempt at a <strong>replication</strong> of Angelini Paolo and Andrea Generale’s 2008 article entitled <em>On the Evolution of Firm Size Distributions</em> and published in the American Economic Review<sup>1</sup>.Econometric study for the original article was implemented in SAS statistical analysis software, in this replication R a different statistical analysis software will be used.The goal of this replication work is to indeed replicate findings of the original authors of the article, and extend their results.<br> The raw data and code books pdf can be found <a href="http://www.aeaweb.org/aer/data/mar08/20050397_data.zip">here</a> for downloading.<br> The following analysis was made using the Fri, Sep 26 2014, 2:25:56 AM version of the raw data, and R version 3.1.1 (2014-07-10) version of R combined with RStudio Desktop v0.98.1056 front.<br> <br> <br></p>
 <h1 align="center">
 Introduction
 </h1>
@@ -135,47 +135,52 @@ It can be seen above that classes of variables in the data set are made to match
 Generating estimation data sets
 </h1>
 <h4 align="center">
-Transcribing dataset.do and obtaining open9201.dta, closed9201.dta and tempstime_1.dta
+Transcribing data set.do and obtaining open9201.dta, closed9201.dta and tempstime_1.dta
 </h3>
 <hr width="100%" noshade size="4">
 
 <h4 align="left"> 
 A - tempstime_1.dta
 </h4>
-<p>The code chunks in the following sub-part of this document loads the Mediocredito Survey &amp; Balance Sheet data containing information for each individual firms for each four years separetely, generates and saves relevant variables used in the original paper.<br> Data from each different years need slightly adjusted code to process them compared to one another.<br></p>
+<p>The code chunks in the following sub-part of this document loads the Mediocredito Survey &amp; Balance Sheet data containing information for each individual firms for each four years separately, generates and saves relevant variables used in the original paper.<br> Data from each different years need slightly adjusted code to process them compared to one another.<br></p>
 <h6 align="left">
 1 - Creating intermediary data set csur92
 </h6>
-<p>Generating data for firms observed in 1992, each have unique indentifier that they keep over the years.<br> Here only observations current to 1992 for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the year before (1991) in order to be able to calculate labor growth current year 1992.<br></p>
+<p>Generating data for firms observed in 1992, each have unique identifier that they keep over the years.<br> Here only observations current to 1992 (ranging 1989-1991) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1989-1991) in order to be able to calculate labor growth.<br></p>
 <pre class="r"><code>csur92 &lt;- subset(data,ind92==1 &amp; dip91!=&quot;.&quot; &amp; dip91&gt;0)</code></pre>
-<p>Now relevant variables are created.</p>
-<pre class="r"><code>library(plyr)
-csur92$lsize &lt;- data.frame(log(csur92$sales))
-csur92$razd &lt;- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &amp;csur92$d17_2==9 &amp; csur92$d17_3==9 &amp; csur92$d17_4==9,NA,0)))
-csur92$duacq &lt;- as.factor(ifelse(csur92$acqui==1,1,0))
-csur92$dusco &lt;- as.factor(ifelse(csur92$scorpo==1,1,0))
-csur92$dupav1 &lt;- ifelse(csur92$pav == 1, 1, 0)
+<p>Now that only observations only from 1992 are chosen via indicator ind==92, relevant variables can be are created.<br> In the code chunk below the log of size of sales (expressed in thousand euros) variable <strong>lsize</strong> is created. This will serve as proxy for size of firm.</p>
+<pre class="r"><code>csur92$lsize &lt;- data.frame(log(csur92$sales))</code></pre>
+<p>In the next chunk of code, dummies establishing baseline definition of rationing, or financial constraint, are constructed out of <em>d17_1</em>, <em>d17_2</em>, <em>d17_3</em> or <em>d17_4</em> variables.These variables are coded answers for questions of whether or not a firm encountered difficulties in financing their last investment project due to insufficient cash flow, lack of collateral, insufficient long-term finance or high cost of debt respectively. In this case multiple answers were allowed with an intensity ranking from 1 to 3, missing values being coded as equal to 9.<br> As indicated in p.427 of the original article, “In the 1992 survey, we define a firm as constrained if at least one question of the first four causes was given the highest importance.” Hence the new rationing variable <strong>razd</strong> takes a value of 1, indicating a financially constrained firm, if above conditions are met, NA if observations for all four original variables are equal to 9, or missing, 0 in any other case.<br> A duplicated of razd variable therefore created is stored under the label <strong>raz92d</strong>.</p>
+<pre class="r"><code>csur92$razd &lt;- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &amp;csur92$d17_2==9 &amp; csur92$d17_3==9 &amp; csur92$d17_4==9,NA,0)))
+csur92$raz92d &lt;- csur92$razd</code></pre>
+<p>In the next chunk of code, Merger and Acquisition indicators are created. A new variable <strong>duacq</strong> is coded as being equal to 1 if the firm was party to mergers or acquisition, and takes 0 in cases of both missing value or if the firm not being party to m&amp;a. This new variable is a version of ACQUI variable in original data set.<br> A new variable <strong>dusco</strong> is created as being equal to 1 if the firm was created through a spin off, and takes 0 in cases of both missing value or if the firm was not created through a spin off.This new variable is a version of SCORPO variable in original data set.<br></p>
+<pre class="r"><code>csur92$duacq &lt;- as.factor(ifelse(csur92$acqui==1,1,0))
+csur92$dusco &lt;- as.factor(ifelse(csur92$scorpo==1,1,0))</code></pre>
+<p>In the next code chunk, sectoral dummies according to “Keith Pavitt” classification are given. In the original data the information is coded in PAV variable which takes values of 1 to 4 if firm belongs to traditional sector, or is scale intensive, or is a specialized supplier, or a high technology respectively. However in the present data set, this variable is separated into four, each specifically answering to one question. <strong>dupav1</strong> answers if firm is in traditional sector taking value 1 or not taking value 0. <strong>dupav2</strong> answers if firm is scale intensive taking value 1 or not taking value 0. <strong>dupav3</strong> answers if firm is a specialized supplier taking value 1 or not taking value 0. <strong>dupav4</strong> answers if firm is in high-technology taking value 1 or not taking value 0.</p>
+<pre class="r"><code>csur92$dupav1 &lt;- ifelse(csur92$pav == 1, 1, 0)
 csur92$dupav2 &lt;- ifelse(csur92$pav == 2, 1, 0)
 csur92$dupav3 &lt;- ifelse(csur92$pav == 3, 1, 0)
-csur92$dupav4 &lt;- ifelse(csur92$pav == 4, 1, 0)
-csur92$roa &lt;- csur92$util/(csur92$aco+csur92$aim)
+csur92$dupav4 &lt;- ifelse(csur92$pav == 4, 1, 0)</code></pre>
+<p>In the next code chunk, balance sheet variables are defined. Variable <strong>roa</strong> represents the return on assets, as a ratio of earnings before financial expense, coded as variable UTIL in the original data set, over the sum of current &amp; net fixed assets, coded as variable ACO and AIM respectively in the original data set.Variable <strong>ofut</strong> represents a ratio of financial expenses represented by variable of in original data set, over operating profits as sum of financial expenses themselves and earnings before taxes and extraordinary items. It defines in essence the share of financial expenses in operating profits.<br> Variable <strong>quoimm</strong> represents the share of tangible assets, coded by variable IMTE in the original data set, over total assets defined as a sum between current and net fixed assets. Moreover, a new <strong>lsales</strong> variables which represents log of sales number is introduced. All balance sheet variables are expressed in thousands euros.</p>
+<pre class="r"><code>csur92$roa &lt;- csur92$util/(csur92$aco+csur92$aim)
 csur92$ofut &lt;- csur92$of/(csur92$of+csur92$utiln)
 csur92$quoimm &lt;- csur92$imte/(csur92$aco+csur92$aim)
-csur92$lsales &lt;- log(csur92$sales)
-
+csur92$lsales &lt;- log(csur92$sales)</code></pre>
+<p>The next code chunks generate dummies for low coverage or low collateral. The rationale behind it can be explained as follows. If the ratio of financial expenses over operating profits, as represented by variable <strong>ofut</strong>, is high, one can conclude that the firm is confronted with high cost of debt and has hence a low coverage. In the same manner, if the share of tangible assets over total asset, as represented by variable <strong>quoimm</strong> is low, one can conclude that the firm in question is confronted to insufficient collateral. Then we create variables <strong>pofut</strong> and <strong>pquoimm</strong> that represent 75<sup>th</sup> by year of the ratio financial expenses over operating profits, and 25<sup>th</sup> percentile by year of the share of tangible assets over total assets.<br> At last, variable <strong>duofut</strong> is an indicator of low coverage, taking value of 1 if value of financial expenses over operating profits for that year for that firm is in the 25% higher values indicating low coverage, 0 if not. In the same manner, variable <strong>dimm</strong> indicates low collateral, taking a value of 1 if the share of tangible assets over total assets for that firm in that year is in the lowest 25%, indicating low collateral, and 0 if not. At last data is ordered by the <em>identif</em> variable.</p>
+<pre class="r"><code>library(plyr)
 common &lt;- data.frame(tapply(csur92$ofut, csur92$anno, quantile, probs=.75, na.rm = TRUE))
 a &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
 names(common)[1] &lt;- &quot;common&quot;
 names(a)[1] &lt;- &quot;common&quot;
 common &lt;- data.frame(rbind(common,a))
-csur92$pofut &lt;- data.frame(ifelse(csur92$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur92$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur92$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur92$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur92$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur92$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur92$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur92$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur92$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur92$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur92$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1]))))))))))))
+csur92$pofut &lt;- ifelse(csur92$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur92$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur92$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur92$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur92$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur92$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur92$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur92$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur92$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur92$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur92$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
 
 common &lt;- data.frame(tapply(csur92$quoimm, csur92$anno, quantile, probs=.25, na.rm = TRUE))
 b &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
 names(common)[1] &lt;- &quot;common&quot;
 names(b)[1] &lt;- &quot;common&quot;
 common &lt;- data.frame(rbind(common, b))
-csur92$pquoimm &lt;- data.frame(ifelse(csur92$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur92$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur92$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur92$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur92$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur92$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur92$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur92$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur92$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur92$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur92$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1]))))))))))))
+csur92$pquoimm &lt;- ifelse(csur92$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur92$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur92$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur92$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur92$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur92$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur92$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur92$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur92$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur92$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur92$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
 
 csur92$duofut &lt;- ifelse(csur92$ofut &gt; csur92$pofut &amp; csur92$ofut != &quot;.&quot;,1,ifelse(csur92$ofut==&quot;.&quot;,&quot;.&quot;,0))
 csur92$dimm &lt;- ifelse(csur92$quoimm &lt; csur92$pquoimm &amp; csur92$pquoimm != &quot;.&quot;,1,ifelse(csur92$ofut==&quot;.&quot;,&quot;.&quot;,0))
@@ -184,6 +189,10 @@ csur92[grep(&quot;acqui&quot;,colnames(csur92))]=NULL
 csur92[grep(&quot;scorpo&quot;,colnames(csur92))]=NULL
 csur92[grep(&quot;^pav$&quot;,colnames(csur92))]=NULL
 csur92 &lt;- csur92[order(csur92$identif),]</code></pre>
+<h6 align="left">
+2 - Creating intermediary data set csur95
+</h6>
+<p>The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of <strong>razd</strong> variable present in the data set above, and the second in the introduction of a new variable <strong>dugr</strong>.</p>
 <p><br> <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. “On the Evolution of Firm Size Distributions.” American Economic Review, 98(1): 426-38.</p>
 
 

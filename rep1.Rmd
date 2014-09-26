@@ -6,9 +6,9 @@ output: html_document
 ---
 <h4,align="left>Replication of findings [A,Paolo & A,Generale (2008)](http://www.jstor.org/discover/10.2307/29729977?uid=3737864&uid=2&uid=4&sid=21104166174021)<sup>1</sup></h4>
 <br>
-```{r set-options,cache=TRUE}
+```{r set-options, cache = TRUE}
 ```
-```{r,echo = FALSE,results='hide'}
+```{r,echo = FALSE, results = 'hide', cache = TRUE}
 old.loc <- Sys.getlocale("LC_TIME")
 Sys.setlocale(category = "LC_TIME", locale="English")
 time <- format(Sys.time(),"%a, %b %d %Y, %X")
@@ -38,7 +38,7 @@ hereinafter the study
 <h4 align="left"> A - Loading the Data</h4>
 This chuck of R code uses `dowloader` library to download directly data from the url specified in *url* symbol. The data thus obtained is unzipped using `unzip` function and stored in *ori* symbol. After data is coerced into a matrix aspect and  assigned *mat* symbol, first column - second line of said matrix, corresponding to raw data, is loaded using `read.dta` function of `foreign` library.The raw is therefore named *data* in R.<br>
 Also `shell.exec` function is used to open the code book for user automatically. Make sure you have a pdf reader installed.
-```{r}
+```{r, cache = TRUE}
 library(foreign)
 library(downloader)
 setwd("C:/Users/anton_000/Documents/Downloads/Desktop/Replication")
@@ -52,7 +52,7 @@ shell.exec(file.path(getwd(), "readme.pdf"))
 <br>
 <h4 align="left"> B - Pre-processing the Data</h4>
 First a quick look at the names of columns in the data set charged in R environment to compare it with **readme.pdf** listed variables, and also the classes of all variables to match with information in readme file.
-```{r}
+```{r, cache = TRUE}
 names <- names(data) #storing column names in "names" vector
 classes <- rep(0, times=ncol(data)) # creating vector to store classes of data column
 for(i in 1:ncol(data)) {classes[i] <- class(data[,i])} # for each column in data finding class storing it in vector "classes" 
@@ -61,7 +61,7 @@ classes# displaying classes
 ```
 <br>As can be seen above although all variables listed in the readme file are present in our data set, all of them seem to have a numeric class in R. However, variable *anno* should be treated as a variable of **Date class** and variables *ACO*, *AIM*, *SALES*, *sales*, *UTIL*, *UTILN*, *OF*, *IMIM* and *IMTE* should have **class numeric**, *indentif* **class factor**, while *the rest* should have **class integer**.<br>
 In the following chunk of code does exactly that.
-```{r}
+```{r, cache = TRUE}
 suppressWarnings(for(i in 1:14) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
 suppressWarnings(for(i in 23:ncol(data)) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
 data$anno <- as.Date(paste(as.character(data$anno),paste("01","01",sep="-"),sep="-"),"%Y-%m-%d") # changing class for anno variable to date
@@ -75,48 +75,70 @@ Now that this pre-processing of data is finished, the process of tidying the dat
 <br>
 <br>
 <h1 align="center">Generating estimation data sets</h1>
-<h4 align="center">Transcribing dataset.do and obtaining open9201.dta, closed9201.dta and tempstime_1.dta</h3>
+<h4 align="center">Transcribing data set.do and obtaining open9201.dta, closed9201.dta and tempstime_1.dta</h3>
 <hr width="100%" noshade size=4>
 
 <h4 align="left"> A - tempstime_1.dta</h4>
-The code chunks in the following sub-part of this document loads the Mediocredito Survey & Balance Sheet data containing information for each individual firms for each four years separetely, generates and saves relevant variables used in the original paper.<br>
+The code chunks in the following sub-part of this document loads the Mediocredito Survey & Balance Sheet data containing information for each individual firms for each four years separately, generates and saves relevant variables used in the original paper.<br>
 Data from each different years need slightly adjusted code to process them compared to one another.<br>
 
 <h6 align="left">1 - Creating intermediary data set csur92</h6>
-Generating data for firms observed in 1992, each have unique indentifier that they keep over the years.<br>
-Here only observations current to 1992 for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the year before (1991) in order to be able to calculate labor growth current year 1992.<br>
-```{r}
+Generating data for firms observed in 1992, each have unique identifier that they keep over the years.<br>
+Here only observations current to 1992 (ranging 1989-1991) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1989-1991) in order to be able to calculate labor growth.<br>
+```{r, cache = TRUE}
 csur92 <- subset(data,ind92==1 & dip91!="." & dip91>0)
 ```
-Now relevant variables are created.
-```{r}
-library(plyr)
+Now that only observations only from 1992 are chosen via indicator ind==92, relevant variables can be are created.<br>
+In the code chunk below the log of size of sales (expressed in thousand euros) variable **lsize** is created. This will serve as proxy for size of firm.
+```{r, cache = TRUE}
 csur92$lsize <- data.frame(log(csur92$sales))
+```
+In the next chunk of code, dummies establishing baseline definition of rationing, or financial constraint, are constructed out of *d17_1*, *d17_2*, *d17_3* or *d17_4* variables.These variables are coded answers for questions of whether or not a firm encountered difficulties in financing their last investment project due to insufficient cash flow, lack of collateral, insufficient long-term finance or high cost of debt respectively. In this case multiple answers were allowed with an intensity ranking from 1 to 3, missing values being coded as equal to 9.<br>
+As indicated in p.427 of the original article, "In the 1992 survey, we define a firm as constrained if at least one question of the first four causes was given the highest importance." Hence the new rationing variable **razd** takes a value of 1, indicating a financially constrained firm, if above conditions are met, NA if observations for all four original variables are equal to 9, or missing, 0 in any other case.<br>
+A duplicated of razd variable therefore created is stored under the label **raz92d**.
+```{r, cache = TRUE}
 csur92$razd <- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &csur92$d17_2==9 & csur92$d17_3==9 & csur92$d17_4==9,NA,0)))
+csur92$raz92d <- csur92$razd
+```
+In the next chunk of code, Merger and Acquisition indicators are created. A new variable **duacq** is coded as being equal to 1 if the firm was party to mergers or acquisition, and takes 0 in cases of both missing value or if the firm not being party to m&a. This new variable is a version of ACQUI variable in original data set.<br>
+A new variable **dusco** is created as being equal to 1 if the firm was created through a spin off, and takes 0 in cases of both missing value or if the firm was not created through a spin off.This new variable is a version of SCORPO variable in original data set.<br>
+```{r, cache = TRUE}
 csur92$duacq <- as.factor(ifelse(csur92$acqui==1,1,0))
 csur92$dusco <- as.factor(ifelse(csur92$scorpo==1,1,0))
+```
+In the next code chunk, sectoral dummies according to "Keith Pavitt" classification are given. In the original data the information is coded in PAV variable which takes values of 1 to 4 if firm belongs to traditional sector, or is scale intensive, or is a specialized supplier, or a high technology respectively. However in the present data set, this variable is separated into four, each specifically answering to one question. **dupav1** answers if firm is in traditional sector taking value 1 or not taking value 0. **dupav2** answers if firm is scale intensive taking value 1 or not taking value 0. **dupav3** answers if firm is a specialized supplier taking value 1 or not taking value 0. **dupav4** answers if firm is in high-technology taking value 1 or not taking value 0.
+```{r, cache = TRUE}
 csur92$dupav1 <- ifelse(csur92$pav == 1, 1, 0)
 csur92$dupav2 <- ifelse(csur92$pav == 2, 1, 0)
 csur92$dupav3 <- ifelse(csur92$pav == 3, 1, 0)
 csur92$dupav4 <- ifelse(csur92$pav == 4, 1, 0)
+```
+In the next code chunk, balance sheet variables are defined. Variable **roa** represents the return on assets, as a ratio of earnings before financial expense, coded as variable UTIL in the original data set, over the sum of current & net fixed assets, coded as variable ACO and AIM respectively in the original data set.Variable **ofut** represents a ratio of financial expenses represented by variable of in original data set, over operating profits as sum of financial expenses themselves and earnings before taxes and extraordinary items. It defines in essence the share of financial expenses in operating profits.<br>
+Variable **quoimm** represents the share of tangible assets, coded by variable IMTE in the original data set, over total assets defined as a sum between current and net fixed assets. Moreover, a new **lsales** variables which represents log of sales number is introduced. All balance sheet variables are expressed in thousands euros.
+```{r, cache = TRUE}
 csur92$roa <- csur92$util/(csur92$aco+csur92$aim)
 csur92$ofut <- csur92$of/(csur92$of+csur92$utiln)
 csur92$quoimm <- csur92$imte/(csur92$aco+csur92$aim)
 csur92$lsales <- log(csur92$sales)
-
+```
+The next code chunks generate dummies for low coverage or low collateral. The rationale behind it can be explained as follows. If the ratio of financial expenses over operating profits, as represented by variable **ofut**, is high, one can conclude that the firm is confronted with high cost of debt and has hence a low coverage. In the same manner, if the share of tangible assets over total asset, as represented by variable **quoimm** is low, one can conclude that the firm in question is confronted to insufficient collateral.
+Then we create variables **pofut** and **pquoimm** that represent 75<sup>th</sup> by year of the ratio financial expenses over operating profits, and 25<sup>th</sup> percentile by year of the share of tangible assets over total assets.<br>
+At last, variable **duofut** is an indicator of low coverage, taking value of 1 if value of financial expenses over operating profits for that year for that firm is in the 25%  higher values indicating low coverage, 0 if not. In the same manner, variable **dimm** indicates low collateral, taking a value of 1 if the share of tangible assets over total assets for that firm in that year is in the lowest 25%, indicating low collateral, and 0 if not. At last data is ordered by the *identif* variable.
+```{r, cache = TRUE}
+library(plyr)
 common <- data.frame(tapply(csur92$ofut, csur92$anno, quantile, probs=.75, na.rm = TRUE))
 a <- data.frame(rep(NA, times = (12 - nrow(common))))
 names(common)[1] <- "common"
 names(a)[1] <- "common"
 common <- data.frame(rbind(common,a))
-csur92$pofut <- data.frame(ifelse(csur92$anno=="1989-01-01",common[1,1],ifelse(csur92$anno=="1990-01-01",common[2,1],ifelse(csur92$anno=="1991-01-01",common[3,1],ifelse(csur92$anno=="1992-01-01",common[4,1],ifelse(csur92$anno=="1993-01-01",common[5,1],ifelse(csur92$anno=="1994-01-01",common[6,1],ifelse(csur92$anno=="1995-01-01",common[7,1],ifelse(csur92$anno=="1996-01-01",common[8,1],ifelse(csur92$anno=="1997-01-01",common[9,1],ifelse(csur92$anno=="1998-01-01",common[10,1],ifelse(csur92$anno=="1999-01-01",common[11,1],common[12,1]))))))))))))
+csur92$pofut <- ifelse(csur92$anno=="1989-01-01",common[1,1],ifelse(csur92$anno=="1990-01-01",common[2,1],ifelse(csur92$anno=="1991-01-01",common[3,1],ifelse(csur92$anno=="1992-01-01",common[4,1],ifelse(csur92$anno=="1993-01-01",common[5,1],ifelse(csur92$anno=="1994-01-01",common[6,1],ifelse(csur92$anno=="1995-01-01",common[7,1],ifelse(csur92$anno=="1996-01-01",common[8,1],ifelse(csur92$anno=="1997-01-01",common[9,1],ifelse(csur92$anno=="1998-01-01",common[10,1],ifelse(csur92$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
 
 common <- data.frame(tapply(csur92$quoimm, csur92$anno, quantile, probs=.25, na.rm = TRUE))
 b <- data.frame(rep(NA, times = (12 - nrow(common))))
 names(common)[1] <- "common"
 names(b)[1] <- "common"
 common <- data.frame(rbind(common, b))
-csur92$pquoimm <- data.frame(ifelse(csur92$anno=="1989-01-01",common[1,1],ifelse(csur92$anno=="1990-01-01",common[2,1],ifelse(csur92$anno=="1991-01-01",common[3,1],ifelse(csur92$anno=="1992-01-01",common[4,1],ifelse(csur92$anno=="1993-01-01",common[5,1],ifelse(csur92$anno=="1994-01-01",common[6,1],ifelse(csur92$anno=="1995-01-01",common[7,1],ifelse(csur92$anno=="1996-01-01",common[8,1],ifelse(csur92$anno=="1997-01-01",common[9,1],ifelse(csur92$anno=="1998-01-01",common[10,1],ifelse(csur92$anno=="1999-01-01",common[11,1],common[12,1]))))))))))))
+csur92$pquoimm <- ifelse(csur92$anno=="1989-01-01",common[1,1],ifelse(csur92$anno=="1990-01-01",common[2,1],ifelse(csur92$anno=="1991-01-01",common[3,1],ifelse(csur92$anno=="1992-01-01",common[4,1],ifelse(csur92$anno=="1993-01-01",common[5,1],ifelse(csur92$anno=="1994-01-01",common[6,1],ifelse(csur92$anno=="1995-01-01",common[7,1],ifelse(csur92$anno=="1996-01-01",common[8,1],ifelse(csur92$anno=="1997-01-01",common[9,1],ifelse(csur92$anno=="1998-01-01",common[10,1],ifelse(csur92$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
 
 csur92$duofut <- ifelse(csur92$ofut > csur92$pofut & csur92$ofut != ".",1,ifelse(csur92$ofut==".",".",0))
 csur92$dimm <- ifelse(csur92$quoimm < csur92$pquoimm & csur92$pquoimm != ".",1,ifelse(csur92$ofut==".",".",0))
@@ -125,9 +147,9 @@ csur92[grep("acqui",colnames(csur92))]=NULL
 csur92[grep("scorpo",colnames(csur92))]=NULL
 csur92[grep("^pav$",colnames(csur92))]=NULL
 csur92 <- csur92[order(csur92$identif),]
-
 ```
-
+<h6 align="left">2 - Creating intermediary data set csur95</h6>
+The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of **razd** variable present in the data set above, and the second in the introduction of a new variable **dugr**.
 
 
 <br>

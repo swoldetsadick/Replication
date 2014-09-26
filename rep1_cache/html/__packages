@@ -1,7 +1,4 @@
 base
-datasets
-graphics
-grDevices
-methods
-stats
-utils
+downloader
+foreign
+plyr
