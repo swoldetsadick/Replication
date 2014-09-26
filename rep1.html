@@ -188,31 +188,71 @@ csur92$dimm &lt;- ifelse(csur92$quoimm &lt; csur92$pquoimm &amp; csur92$pquoimm 
 csur92[grep(&quot;acqui&quot;,colnames(csur92))]=NULL
 csur92[grep(&quot;scorpo&quot;,colnames(csur92))]=NULL
 csur92[grep(&quot;^pav$&quot;,colnames(csur92))]=NULL
-csur92 &lt;- csur92[order(csur92$identif),]
-summary(as.factor(csur92$d17_1))</code></pre>
-<pre><code>##    0    1    2    3    9 
-## 8780  233  174  197  266</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$d17_2))</code></pre>
-<pre><code>##    0    1    2    3    9 
-## 9429   82   56   39   44</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$d17_3))</code></pre>
-<pre><code>##    0    1    2    3    9 
-## 8510  173  249  288  430</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$d17_4))</code></pre>
-<pre><code>##    0    1    2    3    9 
-## 8335  144  291  350  530</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$d17_5))</code></pre>
-<pre><code>##    0    1    2    3    9 
-## 8988  113  144  193  212</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$d17_1+csur92$d17_2+csur92$d17_3+csur92$d17_4+csur92$d17_5))</code></pre>
-<pre><code>##    0    1    2    3    4    5    6    7    8    9   10   11   12   15   18 
-## 6910  200  321  523  117  124  158   40   37  895    9   19    3    3  244 
-##   20   21   27   45 
-##    1    3   42    1</code></pre>
+csur92 &lt;- csur92[order(csur92$identif),]</code></pre>
 <h6 align="left">
 2 - Creating intermediary data set csur95
 </h6>
-<p>The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of <strong>razd</strong> variable present in the data set above, and the second in the introduction of a new variable <strong>dugr</strong>.</p>
+<p>The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of <strong>razd</strong> variable present in the data set above, and the second in the introduction of a new variable <strong>dugr</strong>.<br> Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br></p>
+<pre class="r"><code>csur95 &lt;- subset(data,ind95==1 &amp; dip94!=&quot;.&quot; &amp; dip94&gt;0)
+#Size as Proxied by Total Sales;
+csur95$lsize &lt;- log(csur95$sales)</code></pre>
+<p>The baseline definition of financial constraints in the 1995 survey is defined somehow differently compared to 1992 survey. The construction of <strong>razd</strong> variable indicating financial constraint depends on variables <em>NONOTTEN</em> and <em>AVREBACC</em> in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions “Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?” and “Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?” respectively.<br> If the first question was answered with a yes, then the firm is considered as financially constrained and variable <strong>razd</strong> will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.</p>
+<pre class="r"><code>#Dummy Rationing Baseline def.;
+csur95$razd &lt;- ifelse(csur95$nonotten==1,1,ifelse(csur95$nonotten==&quot;.&quot; &amp; csur95$avrebacc==&quot;.&quot;,NA,0))
+csur95$raz95d &lt;- csur95$razd</code></pre>
+<p>The M&amp;A dummies are basically defined exactly as in above section.</p>
+<pre class="r"><code>#Dummies M&amp;A's;
+csur95$duacq &lt;- ifelse(csur95$acqui==1,1,0)
+csur95$dusco &lt;- ifelse(csur95$scorpo==1,1,0)</code></pre>
+<p>Here a new variable <strong>dugr</strong> is introduced based on <em>isgru</em> variable of original data set. The latter has a value of 1, if the firm in question is part of an industrial group, and 0 if not with possible NA values. However, <strong>dugr</strong> is constructed as equal to 1 if the firm is part of an industrial group, and 0 in any other situations.</p>
+<pre class="r"><code>#Dummy Industrial Group
+csur95$durg &lt;- ifelse(csur95$isgru==1,1,0)</code></pre>
+<p>The following steps are defined exactly as in above section.</p>
+<pre class="r"><code>#4 Pavitt Sectoral Dummies;
+csur95$dupav1 &lt;- ifelse(csur95$pav==1,1,0)
+csur95$dupav2 &lt;- ifelse(csur95$pav==2,1,0)
+csur95$dupav3 &lt;- ifelse(csur95$pav==3,1,0)
+csur95$dupav4 &lt;- ifelse(csur95$pav==4,1,0)
+
+#Defining Balance-Sheet Variables
+        #Return on Assets
+csur95$roa &lt;- csur95$util/(csur95$aco + csur95$aim)
+    #Financial Expenses/Operating Profits
+csur95$ofut &lt;- csur95$of/(csur95$of + csur95$utiln)
+    #Share of Tangible Assets over Total Assets
+csur95$quoimm &lt;- csur95$imte/(csur95$aco + csur95$aim)
+    #Log of Sales
+csur95$lsales &lt;- log(csur95$sales)
+
+#Generating Percentiles for the Dummies Low Coverage - Low Collateral
+library(plyr)
+common &lt;- data.frame(tapply(csur95$ofut, csur95$anno, quantile, probs=.75, na.rm = TRUE))
+a &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] &lt;- &quot;common&quot;
+names(a)[1] &lt;- &quot;common&quot;
+common &lt;- data.frame(rbind(common,a))
+csur95$pofut &lt;- ifelse(csur95$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur95$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur95$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur95$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur95$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur95$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur95$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur95$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur95$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur95$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur95$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+
+common &lt;- data.frame(tapply(csur95$quoimm, csur95$anno, quantile, probs=.25, na.rm = TRUE))
+b &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] &lt;- &quot;common&quot;
+names(b)[1] &lt;- &quot;common&quot;
+common &lt;- data.frame(rbind(common, b))
+csur95$pquoimm &lt;- ifelse(csur95$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur95$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur95$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur95$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur95$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur95$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur95$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur95$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur95$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur95$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur95$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+
+csur95$duofut &lt;- ifelse(csur95$ofut &gt; csur95$pofut &amp; csur95$ofut != &quot;.&quot;,1,ifelse(csur95$ofut==&quot;.&quot;,&quot;.&quot;,0))
+csur95$dimm &lt;- ifelse(csur95$quoimm &lt; csur95$pquoimm &amp; csur95$pquoimm != &quot;.&quot;,1,ifelse(csur95$ofut==&quot;.&quot;,&quot;.&quot;,0))
+
+csur95[grep(&quot;acqui&quot;,colnames(csur95))] &lt;- NULL
+csur95[grep(&quot;scorpo&quot;,colnames(csur95))] &lt;- NULL
+csur95[grep(&quot;isgru&quot;,colnames(csur95))] &lt;- NULL
+csur95[grep(&quot;^pav$&quot;,colnames(csur95))] &lt;- NULL
+
+csur95 &lt;- csur95[order(csur95$identif),]</code></pre>
+<h6 align="left">
+3 - Creating intermediary data set csur98
+</h6>
+
 <p><br> <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. “On the Evolution of Firm Size Distributions.” American Economic Review, 98(1): 426-38.</p>
 
 

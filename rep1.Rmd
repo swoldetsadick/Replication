@@ -149,8 +149,76 @@ csur92[grep("^pav$",colnames(csur92))]=NULL
 csur92 <- csur92[order(csur92$identif),]
 ```
 <h6 align="left">2 - Creating intermediary data set csur95</h6>
-The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of **razd** variable present in the data set above, and the second in the introduction of a new variable **dugr**.
+The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of **razd** variable present in the data set above, and the second in the introduction of a new variable **dugr**.<br>
+Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br>
+```{r, cache = TRUE}
+csur95 <- subset(data,ind95==1 & dip94!="." & dip94>0)
+#Size as Proxied by Total Sales;
+csur95$lsize <- log(csur95$sales)
+```
+The baseline definition of financial constraints in the 1995 survey is defined somehow differently compared to 1992 survey. The construction of **razd** variable indicating financial constraint depends on variables *NONOTTEN* and *AVREBACC* in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions "Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?" and "Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?" respectively.<br>
+If the first question was answered with a yes, then the firm is considered as financially constrained and variable **razd** will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.
+```{r, cache = TRUE}
+#Dummy Rationing Baseline def.;
+csur95$razd <- ifelse(csur95$nonotten==1,1,ifelse(csur95$nonotten=="." & csur95$avrebacc==".",NA,0))
+csur95$raz95d <- csur95$razd
+```
+The M&A dummies are basically defined exactly as in above section.
+```{r, cache = TRUE}
+#Dummies M&A's;
+csur95$duacq <- ifelse(csur95$acqui==1,1,0)
+csur95$dusco <- ifelse(csur95$scorpo==1,1,0)
+```
+Here a new variable **dugr** is introduced based on *isgru* variable of original data set. The latter has a value of 1, if the firm in question is part of an industrial group, and 0 if not with possible NA values. However, **dugr** is constructed as equal to 1 if the firm is part of an industrial group, and 0 in any other situations.
+```{r, cache = TRUE}
+#Dummy Industrial Group
+csur95$durg <- ifelse(csur95$isgru==1,1,0)
+```
+The following steps are defined exactly as in above section.
+```{r, cache = TRUE}
+#4 Pavitt Sectoral Dummies;
+csur95$dupav1 <- ifelse(csur95$pav==1,1,0)
+csur95$dupav2 <- ifelse(csur95$pav==2,1,0)
+csur95$dupav3 <- ifelse(csur95$pav==3,1,0)
+csur95$dupav4 <- ifelse(csur95$pav==4,1,0)
 
+#Defining Balance-Sheet Variables
+        #Return on Assets
+csur95$roa <- csur95$util/(csur95$aco + csur95$aim)
+	#Financial Expenses/Operating Profits
+csur95$ofut <- csur95$of/(csur95$of + csur95$utiln)
+	#Share of Tangible Assets over Total Assets
+csur95$quoimm <- csur95$imte/(csur95$aco + csur95$aim)
+	#Log of Sales
+csur95$lsales <- log(csur95$sales)
+
+#Generating Percentiles for the Dummies Low Coverage - Low Collateral
+library(plyr)
+common <- data.frame(tapply(csur95$ofut, csur95$anno, quantile, probs=.75, na.rm = TRUE))
+a <- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] <- "common"
+names(a)[1] <- "common"
+common <- data.frame(rbind(common,a))
+csur95$pofut <- ifelse(csur95$anno=="1989-01-01",common[1,1],ifelse(csur95$anno=="1990-01-01",common[2,1],ifelse(csur95$anno=="1991-01-01",common[3,1],ifelse(csur95$anno=="1992-01-01",common[4,1],ifelse(csur95$anno=="1993-01-01",common[5,1],ifelse(csur95$anno=="1994-01-01",common[6,1],ifelse(csur95$anno=="1995-01-01",common[7,1],ifelse(csur95$anno=="1996-01-01",common[8,1],ifelse(csur95$anno=="1997-01-01",common[9,1],ifelse(csur95$anno=="1998-01-01",common[10,1],ifelse(csur95$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+
+common <- data.frame(tapply(csur95$quoimm, csur95$anno, quantile, probs=.25, na.rm = TRUE))
+b <- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] <- "common"
+names(b)[1] <- "common"
+common <- data.frame(rbind(common, b))
+csur95$pquoimm <- ifelse(csur95$anno=="1989-01-01",common[1,1],ifelse(csur95$anno=="1990-01-01",common[2,1],ifelse(csur95$anno=="1991-01-01",common[3,1],ifelse(csur95$anno=="1992-01-01",common[4,1],ifelse(csur95$anno=="1993-01-01",common[5,1],ifelse(csur95$anno=="1994-01-01",common[6,1],ifelse(csur95$anno=="1995-01-01",common[7,1],ifelse(csur95$anno=="1996-01-01",common[8,1],ifelse(csur95$anno=="1997-01-01",common[9,1],ifelse(csur95$anno=="1998-01-01",common[10,1],ifelse(csur95$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+
+csur95$duofut <- ifelse(csur95$ofut > csur95$pofut & csur95$ofut != ".",1,ifelse(csur95$ofut==".",".",0))
+csur95$dimm <- ifelse(csur95$quoimm < csur95$pquoimm & csur95$pquoimm != ".",1,ifelse(csur95$ofut==".",".",0))
+
+csur95[grep("acqui",colnames(csur95))] <- NULL
+csur95[grep("scorpo",colnames(csur95))] <- NULL
+csur95[grep("isgru",colnames(csur95))] <- NULL
+csur95[grep("^pav$",colnames(csur95))] <- NULL
+
+csur95 <- csur95[order(csur95$identif),]
+```
+<h6 align="left">3 - Creating intermediary data set csur98</h6>
 
 <br>
 <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.
