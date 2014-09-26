@@ -196,7 +196,7 @@ csur92 &lt;- csur92[order(csur92$identif),]</code></pre>
 <pre class="r"><code>csur95 &lt;- subset(data,ind95==1 &amp; dip94!=&quot;.&quot; &amp; dip94&gt;0)
 #Size as Proxied by Total Sales;
 csur95$lsize &lt;- log(csur95$sales)</code></pre>
-<p>The baseline definition of financial constraints in the 1995 survey is defined somehow differently compared to 1992 survey. The construction of <strong>razd</strong> variable indicating financial constraint depends on variables <em>NONOTTEN</em> and <em>AVREBACC</em> in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions “Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?” and “Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?” respectively.<br> If the first question was answered with a yes, then the firm is considered as financially constrained and variable <strong>razd</strong> will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.</p>
+<p>The baseline definition of financial constraints in the 1995 survey is defined somehow different compared to 1992 survey. The construction of <strong>razd</strong> variable indicating financial constraint depends on variables <em>NONOTTEN</em> and <em>AVREBACC</em> in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions “Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?” and “Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?” respectively.<br> If the first question was answered with a yes, then the firm is considered as financially constrained and variable <strong>razd</strong> will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.<br> A copy of razd variable is made in variable <strong>raz95d</strong>.</p>
 <pre class="r"><code>#Dummy Rationing Baseline def.;
 csur95$razd &lt;- ifelse(csur95$nonotten==1,1,ifelse(csur95$nonotten==&quot;.&quot; &amp; csur95$avrebacc==&quot;.&quot;,NA,0))
 csur95$raz95d &lt;- csur95$razd</code></pre>
@@ -252,7 +252,102 @@ csur95 &lt;- csur95[order(csur95$identif),]</code></pre>
 <h6 align="left">
 3 - Creating intermediary data set csur98
 </h6>
+<p>The creation of csur98 data set departs in three majors ways and in one major way from the construction of csur92 data set. First a minor adjustment in the selection of observation only contemporary to 1998.Here only observations current to 1998 (ranging 1995-1997) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1995-1997) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 98 is not negative in 1998.<br> Additionally a new variable <strong>isgru</strong> is introduced in the exact same manner as described for data set csur98.<br></p>
+<pre class="r"><code>csur98 &lt;- subset(data,ind98 == 1 &amp; dip97 != &quot;.&quot; &amp; dip97 &gt; 0 &amp; eta98 &gt;= 0 )
+#Size as Proxied by Total Sales;
+csur98$lsize &lt;- log(csur98$sales)</code></pre>
+<p>The baseline definition of financial constraints in the 1998 survey is defined somehow differently compared to both 1992 and 1995 surveys. The construction of financial constraint indicator <strong>razd</strong> is based on variables <em>desi</em>, <em>chie</em> and <em>paga</em> of the original data set. These variables represent code a yes or no question (1 being yes and 2 being no) to questions, “In the previous year the firm wanted more credit at the prevailing market conditions.”, “In the previous year the firm asked for more credit but was turned down by the bank.” and “In the previous year the firm would have accepted to pay a slightly higher loan rate.” respectively.<br> If answers to first question and second question both were positive, then the firm is considered as financially constrained and <strong>razd</strong> variable will be equal to 1, else if answers to all three questions were missing the firm is considered to be have no information on financial constraint having an NA value for <strong>razd</strong>, for all other situation the new variable will have a value of zero indicating no financial constraint of firm involved. A copy of this new variable is stored in variable <strong>razd98d</strong>.</p>
+<pre class="r"><code>#Dummy Rationing Baseline def.;
+csur98$razd &lt;- ifelse(csur98$desi==1 &amp; csur98$paga==1,1,ifelse(csur98$desi==&quot;.&quot; &amp; csur98$paga==&quot;.&quot;&amp; csur98$chie==&quot;.&quot;,NA,0))
+csur98$raz98d &lt;- csur98$razd
 
+#Dummies M&amp;A's;
+csur98$duacq &lt;- ifelse(csur98$acqui==1,1,0)
+csur98$dusco&lt;- ifelse(csur98$scorpo==1,1,0)
+
+#Dummy Industrial Group
+csur98$durg=ifelse(csur98$isgru==1,1,0)
+
+#4 Pavitt Sectoral Dummies;
+csur98$dupav1 &lt;- ifelse(csur98$pav==1,1,0)
+csur98$dupav2 &lt;- ifelse(csur98$pav==2,1,0)
+csur98$dupav3 &lt;- ifelse(csur98$pav==3,1,0)
+csur98$dupav4 &lt;- ifelse(csur98$pav==4,1,0)
+
+#Defining Balance-Sheet Variables
+        #Return on Assets
+csur98$roa &lt;- csur98$util/(csur98$aco+csur98$aim)
+    #Financial Expenses/Operating Profits
+csur98$ofut &lt;- csur98$of/(csur98$of+csur98$utiln)
+    #Share of Tangible Assets over Total Assets
+csur98$quoimm &lt;- csur98$imte/(csur98$aco+csur98$aim)
+    #Log of Sales
+csur98$lsales &lt;- log(csur98$sales)
+
+#Generating Percentiles for the Dummies Low Coverage - Low Collateral
+library(plyr)
+common &lt;- data.frame(tapply(csur98$ofut, csur98$anno, quantile, probs=.75, na.rm = TRUE))
+a &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] &lt;- &quot;common&quot;
+names(a)[1] &lt;- &quot;common&quot;
+common &lt;- data.frame(rbind(common,a))
+csur98$pofut &lt;- ifelse(csur98$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur98$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur98$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur98$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur98$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur98$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur98$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur98$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur98$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur98$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur98$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+
+common &lt;- data.frame(tapply(csur98$quoimm, csur98$anno, quantile, probs=.25, na.rm = TRUE))
+b &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] &lt;- &quot;common&quot;
+names(b)[1] &lt;- &quot;common&quot;
+common &lt;- data.frame(rbind(common, b))
+csur98$pquoimm &lt;- ifelse(csur98$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur98$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur98$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur98$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur98$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur98$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur98$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur98$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur98$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur98$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur98$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+
+csur98$duofut &lt;- ifelse(csur98$ofut &gt; csur98$pofut &amp; csur98$ofut != &quot;.&quot;,1,ifelse(csur98$ofut==&quot;.&quot;,&quot;.&quot;,0))
+csur98$dimm &lt;- ifelse(csur98$quoimm &lt; csur98$pquoimm &amp; csur98$pquoimm != &quot;.&quot;,1,ifelse(csur98$ofut==&quot;.&quot;,&quot;.&quot;,0))</code></pre>
+<p>A new variable <strong>desi</strong> is introduced here. This new variable is a dummy indicating if the firm desired more credit or not, based on <em>desi</em> variable in the original data set as described above. If the latter is equal to 1, <strong>desi</strong> variable will be equal to 1 indicating that the firm would have desired more credit the year in question. If all <em>desi</em>, <em>paga</em> and <em>chie</em> variables of the old data set had missing values the new <strong>desi</strong> variable will have an NA value. In any other case the value is equal to 0 indicating that firm did not need additional credit.<br> A copy of this new variable <strong>desi</strong> is stored in new variable called <strong>desi98</strong>.</p>
+<pre class="r"><code>#Dummy Desiring more Credit
+
+csur98$desi &lt;- ifelse(csur98$desi==1,1,ifelse(csur98$desi==2,0,ifelse(csur98$desi==&quot;.&quot; &amp; csur98$paga==&quot;.&quot; &amp; csur98$chie==&quot;.&quot;,NA,0)))
+csur98$desi98 &lt;- csur98$desi
+
+csur98[grep(&quot;acqui&quot;,colnames(csur98))] &lt;- NULL
+csur98[grep(&quot;scorpo&quot;,colnames(csur98))] &lt;- NULL
+csur98[grep(&quot;isgru&quot;,colnames(csur98))] &lt;- NULL
+csur98[grep(&quot;^pav$&quot;,colnames(csur98))] &lt;- NULL
+
+csur98 = csur98[order(csur98$identif),]
+names(csur92)</code></pre>
+<pre><code>##  [1] &quot;d17_1&quot;    &quot;d17_2&quot;    &quot;d17_3&quot;    &quot;d17_4&quot;    &quot;d17_5&quot;    &quot;dip89&quot;   
+##  [7] &quot;dip90&quot;    &quot;dip91&quot;    &quot;eta92&quot;    &quot;isgru&quot;    &quot;anno&quot;     &quot;aco&quot;     
+## [13] &quot;aim&quot;      &quot;sales&quot;    &quot;util&quot;     &quot;utiln&quot;    &quot;of&quot;       &quot;imim&quot;    
+## [19] &quot;imte&quot;     &quot;ind92&quot;    &quot;nonotten&quot; &quot;avrebacc&quot; &quot;dip92&quot;    &quot;dip93&quot;   
+## [25] &quot;dip94&quot;    &quot;eta95&quot;    &quot;ind95&quot;    &quot;dip95&quot;    &quot;dip96&quot;    &quot;dip97&quot;   
+## [31] &quot;eta98&quot;    &quot;desi&quot;     &quot;chie&quot;     &quot;paga&quot;     &quot;eta98n&quot;   &quot;ind98&quot;   
+## [37] &quot;dip98&quot;    &quot;dip99&quot;    &quot;dip00&quot;    &quot;eta01&quot;    &quot;eta01n&quot;   &quot;ind01&quot;   
+## [43] &quot;identif&quot;  &quot;lsize&quot;    &quot;razd&quot;     &quot;raz92d&quot;   &quot;duacq&quot;    &quot;dusco&quot;   
+## [49] &quot;dupav1&quot;   &quot;dupav2&quot;   &quot;dupav3&quot;   &quot;dupav4&quot;   &quot;roa&quot;      &quot;ofut&quot;    
+## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;pquoimm&quot;  &quot;duofut&quot;   &quot;dimm&quot;</code></pre>
+<pre class="r"><code>names(csur95)</code></pre>
+<pre><code>##  [1] &quot;d17_1&quot;    &quot;d17_2&quot;    &quot;d17_3&quot;    &quot;d17_4&quot;    &quot;d17_5&quot;    &quot;dip89&quot;   
+##  [7] &quot;dip90&quot;    &quot;dip91&quot;    &quot;eta92&quot;    &quot;anno&quot;     &quot;aco&quot;      &quot;aim&quot;     
+## [13] &quot;sales&quot;    &quot;util&quot;     &quot;utiln&quot;    &quot;of&quot;       &quot;imim&quot;     &quot;imte&quot;    
+## [19] &quot;ind92&quot;    &quot;nonotten&quot; &quot;avrebacc&quot; &quot;dip92&quot;    &quot;dip93&quot;    &quot;dip94&quot;   
+## [25] &quot;eta95&quot;    &quot;ind95&quot;    &quot;dip95&quot;    &quot;dip96&quot;    &quot;dip97&quot;    &quot;eta98&quot;   
+## [31] &quot;desi&quot;     &quot;chie&quot;     &quot;paga&quot;     &quot;eta98n&quot;   &quot;ind98&quot;    &quot;dip98&quot;   
+## [37] &quot;dip99&quot;    &quot;dip00&quot;    &quot;eta01&quot;    &quot;eta01n&quot;   &quot;ind01&quot;    &quot;identif&quot; 
+## [43] &quot;lsize&quot;    &quot;razd&quot;     &quot;raz95d&quot;   &quot;duacq&quot;    &quot;dusco&quot;    &quot;durg&quot;    
+## [49] &quot;dupav1&quot;   &quot;dupav2&quot;   &quot;dupav3&quot;   &quot;dupav4&quot;   &quot;roa&quot;      &quot;ofut&quot;    
+## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;pquoimm&quot;  &quot;duofut&quot;   &quot;dimm&quot;</code></pre>
+<pre class="r"><code>names(csur98)</code></pre>
+<pre><code>##  [1] &quot;d17_1&quot;    &quot;d17_2&quot;    &quot;d17_3&quot;    &quot;d17_4&quot;    &quot;d17_5&quot;    &quot;dip89&quot;   
+##  [7] &quot;dip90&quot;    &quot;dip91&quot;    &quot;eta92&quot;    &quot;anno&quot;     &quot;aco&quot;      &quot;aim&quot;     
+## [13] &quot;sales&quot;    &quot;util&quot;     &quot;utiln&quot;    &quot;of&quot;       &quot;imim&quot;     &quot;imte&quot;    
+## [19] &quot;ind92&quot;    &quot;nonotten&quot; &quot;avrebacc&quot; &quot;dip92&quot;    &quot;dip93&quot;    &quot;dip94&quot;   
+## [25] &quot;eta95&quot;    &quot;ind95&quot;    &quot;dip95&quot;    &quot;dip96&quot;    &quot;dip97&quot;    &quot;eta98&quot;   
+## [31] &quot;desi&quot;     &quot;chie&quot;     &quot;paga&quot;     &quot;eta98n&quot;   &quot;ind98&quot;    &quot;dip98&quot;   
+## [37] &quot;dip99&quot;    &quot;dip00&quot;    &quot;eta01&quot;    &quot;eta01n&quot;   &quot;ind01&quot;    &quot;identif&quot; 
+## [43] &quot;lsize&quot;    &quot;razd&quot;     &quot;raz98d&quot;   &quot;duacq&quot;    &quot;dusco&quot;    &quot;durg&quot;    
+## [49] &quot;dupav1&quot;   &quot;dupav2&quot;   &quot;dupav3&quot;   &quot;dupav4&quot;   &quot;roa&quot;      &quot;ofut&quot;    
+## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;pquoimm&quot;  &quot;duofut&quot;   &quot;dimm&quot;    
+## [61] &quot;desi98&quot;</code></pre>
 <p><br> <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. “On the Evolution of Firm Size Distributions.” American Economic Review, 98(1): 426-38.</p>
 
 

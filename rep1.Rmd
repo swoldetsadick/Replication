@@ -156,7 +156,7 @@ csur95 <- subset(data,ind95==1 & dip94!="." & dip94>0)
 #Size as Proxied by Total Sales;
 csur95$lsize <- log(csur95$sales)
 ```
-The baseline definition of financial constraints in the 1995 survey is defined somehow differently compared to 1992 survey. The construction of **razd** variable indicating financial constraint depends on variables *NONOTTEN* and *AVREBACC* in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions "Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?" and "Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?" respectively.<br>
+The baseline definition of financial constraints in the 1995 survey is defined somehow different compared to 1992 survey. The construction of **razd** variable indicating financial constraint depends on variables *NONOTTEN* and *AVREBACC* in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions "Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?" and "Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?" respectively.<br>
 If the first question was answered with a yes, then the firm is considered as financially constrained and variable **razd** will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.<br>
 A copy of razd variable is made in variable **raz95d**.
 ```{r, cache = TRUE}
@@ -220,6 +220,80 @@ csur95[grep("^pav$",colnames(csur95))] <- NULL
 csur95 <- csur95[order(csur95$identif),]
 ```
 <h6 align="left">3 - Creating intermediary data set csur98</h6>
+The creation of csur98 data set departs in three majors ways and in one major way from the construction of csur92 data set. First a minor adjustment in the selection of observation only contemporary to 1998.Here only observations current to 1998 (ranging 1995-1997) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1995-1997) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 98 is not negative in 1998.<br>
+Additionally a new variable **isgru** is introduced in the exact same manner as described for data set csur98.<br>
+```{r, cache = TRUE}
+csur98 <- subset(data,ind98 == 1 & dip97 != "." & dip97 > 0 & eta98 >= 0 )
+#Size as Proxied by Total Sales;
+csur98$lsize <- log(csur98$sales)
+```
+The baseline definition of financial constraints in the 1998 survey is defined somehow differently compared to both 1992 and 1995 surveys. The construction of financial constraint indicator **razd** is based on variables *desi*, *chie* and *paga* of the original data set. These variables represent code a yes or no question (1 being yes and 2 being no) to questions, "In the previous year the firm wanted more credit at the prevailing market conditions.", "In the previous year the firm asked for more credit but was turned down by the bank." and "In the previous year the firm would have accepted to pay a slightly higher loan rate." respectively.<br>
+If answers to first question and second question both were positive, then the firm is considered as financially constrained and **razd** variable will be equal to 1, else if answers to all three questions were missing the firm is considered to be have no information on financial constraint having an NA value for **razd**, for all other situation the new variable will have a value of zero indicating no financial constraint of firm involved. A copy of this new variable is stored in variable **razd98d**.
+```{r, cache = TRUE}
+#Dummy Rationing Baseline def.;
+csur98$razd <- ifelse(csur98$desi==1 & csur98$paga==1,1,ifelse(csur98$desi=="." & csur98$paga=="."& csur98$chie==".",NA,0))
+csur98$raz98d <- csur98$razd
+
+#Dummies M&A's;
+csur98$duacq <- ifelse(csur98$acqui==1,1,0)
+csur98$dusco<- ifelse(csur98$scorpo==1,1,0)
+
+#Dummy Industrial Group
+csur98$durg=ifelse(csur98$isgru==1,1,0)
+
+#4 Pavitt Sectoral Dummies;
+csur98$dupav1 <- ifelse(csur98$pav==1,1,0)
+csur98$dupav2 <- ifelse(csur98$pav==2,1,0)
+csur98$dupav3 <- ifelse(csur98$pav==3,1,0)
+csur98$dupav4 <- ifelse(csur98$pav==4,1,0)
+
+#Defining Balance-Sheet Variables
+        #Return on Assets
+csur98$roa <- csur98$util/(csur98$aco+csur98$aim)
+	#Financial Expenses/Operating Profits
+csur98$ofut <- csur98$of/(csur98$of+csur98$utiln)
+	#Share of Tangible Assets over Total Assets
+csur98$quoimm <- csur98$imte/(csur98$aco+csur98$aim)
+	#Log of Sales
+csur98$lsales <- log(csur98$sales)
+
+#Generating Percentiles for the Dummies Low Coverage - Low Collateral
+library(plyr)
+common <- data.frame(tapply(csur98$ofut, csur98$anno, quantile, probs=.75, na.rm = TRUE))
+a <- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] <- "common"
+names(a)[1] <- "common"
+common <- data.frame(rbind(common,a))
+csur98$pofut <- ifelse(csur98$anno=="1989-01-01",common[1,1],ifelse(csur98$anno=="1990-01-01",common[2,1],ifelse(csur98$anno=="1991-01-01",common[3,1],ifelse(csur98$anno=="1992-01-01",common[4,1],ifelse(csur98$anno=="1993-01-01",common[5,1],ifelse(csur98$anno=="1994-01-01",common[6,1],ifelse(csur98$anno=="1995-01-01",common[7,1],ifelse(csur98$anno=="1996-01-01",common[8,1],ifelse(csur98$anno=="1997-01-01",common[9,1],ifelse(csur98$anno=="1998-01-01",common[10,1],ifelse(csur98$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+
+common <- data.frame(tapply(csur98$quoimm, csur98$anno, quantile, probs=.25, na.rm = TRUE))
+b <- data.frame(rep(NA, times = (12 - nrow(common))))
+names(common)[1] <- "common"
+names(b)[1] <- "common"
+common <- data.frame(rbind(common, b))
+csur98$pquoimm <- ifelse(csur98$anno=="1989-01-01",common[1,1],ifelse(csur98$anno=="1990-01-01",common[2,1],ifelse(csur98$anno=="1991-01-01",common[3,1],ifelse(csur98$anno=="1992-01-01",common[4,1],ifelse(csur98$anno=="1993-01-01",common[5,1],ifelse(csur98$anno=="1994-01-01",common[6,1],ifelse(csur98$anno=="1995-01-01",common[7,1],ifelse(csur98$anno=="1996-01-01",common[8,1],ifelse(csur98$anno=="1997-01-01",common[9,1],ifelse(csur98$anno=="1998-01-01",common[10,1],ifelse(csur98$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+
+csur98$duofut <- ifelse(csur98$ofut > csur98$pofut & csur98$ofut != ".",1,ifelse(csur98$ofut==".",".",0))
+csur98$dimm <- ifelse(csur98$quoimm < csur98$pquoimm & csur98$pquoimm != ".",1,ifelse(csur98$ofut==".",".",0))
+```
+A new variable **desi** is introduced here. This new variable is a dummy indicating if the firm desired more credit or not, based on *desi* variable in the original data set as described above. If the latter is equal to 1, **desi** variable will be equal to 1 indicating that the firm would have desired more credit the year in question. If all *desi*, *paga* and *chie* variables of the old data set had missing values the new **desi** variable will have an NA value. In any other case the value is equal to 0 indicating that firm did not need additional credit.<br>
+A copy of this new variable **desi** is stored in new variable called **desi98**.
+```{r, cache = TRUE}
+#Dummy Desiring more Credit
+
+csur98$desi <- ifelse(csur98$desi==1,1,ifelse(csur98$desi==2,0,ifelse(csur98$desi=="." & csur98$paga=="." & csur98$chie==".",NA,0)))
+csur98$desi98 <- csur98$desi
+
+csur98[grep("acqui",colnames(csur98))] <- NULL
+csur98[grep("scorpo",colnames(csur98))] <- NULL
+csur98[grep("isgru",colnames(csur98))] <- NULL
+csur98[grep("^pav$",colnames(csur98))] <- NULL
+
+csur98 = csur98[order(csur98$identif),]
+names(csur92)
+names(csur95)
+names(csur98)
+```
 
 <br>
 <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.
