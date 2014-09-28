@@ -85,47 +85,47 @@ Data from each different years need slightly adjusted code to process them compa
 <h6 align="left">1 - Creating intermediary data set csur92</h6>
 Generating data for firms observed in 1992, each have unique identifier that they keep over the years.<br>
 Here only observations current to 1992 (ranging 1989-1991) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1989-1991) in order to be able to calculate labor growth.<br>
-```{r, cache = TRUE}
-csur92 <- subset(data,ind92==1 & dip91!="." & dip91>0)
+```{r}
+csur92 <- subset(data,ind92==1 & dip91!="." & dip91>0) 
 ```
 Now that only observations only from 1992 are chosen via indicator ind==92, relevant variables can be are created.<br>
 In the code chunk below the log of size of sales (expressed in thousand euros) variable **lsize** is created. This will serve as proxy for size of firm.
-```{r, cache = TRUE}
-csur92$lsize <- data.frame(log(csur92$sales))
+```{r}
+csur92$lsize <- ifelse(csur92$sales<= 0 , NA, log(csur92$sales)) 
 ```
 In the next chunk of code, dummies establishing baseline definition of rationing, or financial constraint, are constructed out of *d17_1*, *d17_2*, *d17_3* or *d17_4* variables.These variables are coded answers for questions of whether or not a firm encountered difficulties in financing their last investment project due to insufficient cash flow, lack of collateral, insufficient long-term finance or high cost of debt respectively. In this case multiple answers were allowed with an intensity ranking from 1 to 3, missing values being coded as equal to 9.<br>
 As indicated in p.427 of the original article, "In the 1992 survey, we define a firm as constrained if at least one question of the first four causes was given the highest importance." Hence the new rationing variable **razd** takes a value of 1, indicating a financially constrained firm, if above conditions are met, NA if observations for all four original variables are equal to 9, or missing, 0 in any other case.<br>
 A duplicated of **razd** variable therefore created is stored under the label **raz92d**.
-```{r, cache = TRUE}
-csur92$razd <- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &csur92$d17_2==9 & csur92$d17_3==9 & csur92$d17_4==9,NA,0)))
-csur92$raz92d <- csur92$razd
+```{r}
+csur92$razd <- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &csur92$d17_2==9 & csur92$d17_3==9 & csur92$d17_4==9,NA,0))) 
+csur92$raz92d <- csur92$razd 
 ```
 In the next chunk of code, Merger and Acquisition indicators are created. A new variable **duacq** is coded as being equal to 1 if the firm was party to mergers or acquisition, and takes 0 in cases of both missing value or if the firm not being party to m&a. This new variable is a version of ACQUI variable in original data set.<br>
 A new variable **dusco** is created as being equal to 1 if the firm was created through a spin off, and takes 0 in cases of both missing value or if the firm was not created through a spin off.This new variable is a version of SCORPO variable in original data set.<br>
-```{r, cache = TRUE}
-csur92$duacq <- as.factor(ifelse(csur92$acqui==1,1,0))
-csur92$dusco <- as.factor(ifelse(csur92$scorpo==1,1,0))
+```{r}
+csur92$duacq <- ifelse(is.na(csur92$acqui),0,ifelse(csur92$acqui==1,1,0))
+csur92$dusco<- ifelse(is.na(csur92$scorpo),0,ifelse(csur92$scorpo==1,1,0))
 ```
 In the next code chunk, sectoral dummies according to "Keith Pavitt" classification are given. In the original data the information is coded in PAV variable which takes values of 1 to 4 if firm belongs to traditional sector, or is scale intensive, or is a specialized supplier, or a high technology respectively. However in the present data set, this variable is separated into four, each specifically answering to one question. **dupav1** answers if firm is in traditional sector taking value 1 or not taking value 0. **dupav2** answers if firm is scale intensive taking value 1 or not taking value 0. **dupav3** answers if firm is a specialized supplier taking value 1 or not taking value 0. **dupav4** answers if firm is in high-technology taking value 1 or not taking value 0.
-```{r, cache = TRUE}
-csur92$dupav1 <- ifelse(csur92$pav == 1, 1, 0)
-csur92$dupav2 <- ifelse(csur92$pav == 2, 1, 0)
-csur92$dupav3 <- ifelse(csur92$pav == 3, 1, 0)
-csur92$dupav4 <- ifelse(csur92$pav == 4, 1, 0)
+```{r}
+csur92$dupav1 <- ifelse(csur92$pav == 1, 1, 0) 
+csur92$dupav2 <- ifelse(csur92$pav == 2, 1, 0) 
+csur92$dupav3 <- ifelse(csur92$pav == 3, 1, 0) 
+csur92$dupav4 <- ifelse(csur92$pav == 4, 1, 0) 
 ```
 In the next code chunk, balance sheet variables are defined. Variable **roa** represents the return on assets, as a ratio of earnings before financial expense, coded as variable UTIL in the original data set, over the sum of current & net fixed assets, coded as variable ACO and AIM respectively in the original data set.Variable **ofut** represents a ratio of financial expenses represented by variable of in original data set, over operating profits as sum of financial expenses themselves and earnings before taxes and extraordinary items. It defines in essence the share of financial expenses in operating profits.<br>
 Variable **quoimm** represents the share of tangible assets, coded by variable IMTE in the original data set, over total assets defined as a sum between current and net fixed assets. Moreover, a new **lsales** variables which represents log of sales number is introduced. All balance sheet variables are expressed in thousands euros.
-```{r, cache = TRUE}
-csur92$roa <- csur92$util/(csur92$aco+csur92$aim)
-csur92$ofut <- csur92$of/(csur92$of+csur92$utiln)
-csur92$quoimm <- csur92$imte/(csur92$aco+csur92$aim)
-csur92$lsales <- log(csur92$sales)
+```{r}
+csur92$roa <- (csur92$util/(csur92$aco+csur92$aim)) 
+csur92$ofut <- (csur92$of/(csur92$of+csur92$utiln)) 
+csur92$quoimm <- (csur92$imte/(csur92$aco+csur92$aim))
+csur92$lsales <- ifelse(csur92$sales<= 0 , NA, log(csur92$sales))
 ```
 The next code chunks generate dummies for low coverage or low collateral. The rationale behind it can be explained as follows. If the ratio of financial expenses over operating profits, as represented by variable **ofut**, is high, one can conclude that the firm is confronted with high cost of debt and has hence a low coverage. In the same manner, if the share of tangible assets over total asset, as represented by variable **quoimm** is low, one can conclude that the firm in question is confronted to insufficient collateral.
 Then we create variables **pofut** and **pquoimm** that represent 75<sup>th</sup> by year of the ratio financial expenses over operating profits, and 25<sup>th</sup> percentile by year of the share of tangible assets over total assets.<br>
 At last, variable **duofut** is an indicator of low coverage, taking value of 1 if value of financial expenses over operating profits for that year for that firm is in the 25%  higher values indicating low coverage, 0 if not. In the same manner, variable **dimm** indicates low collateral, taking a value of 1 if the share of tangible assets over total assets for that firm in that year is in the lowest 25%, indicating low collateral, and 0 if not. At last data is ordered by the *identif* variable.
-```{r, cache = TRUE}
-library(plyr)
+```{r}
+library(plyr) 
 common <- data.frame(tapply(csur92$ofut, csur92$anno, quantile, probs=.75, na.rm = TRUE))
 a <- data.frame(rep(NA, times = (12 - nrow(common))))
 names(common)[1] <- "common"
@@ -140,8 +140,8 @@ names(b)[1] <- "common"
 common <- data.frame(rbind(common, b))
 csur92$pquoimm <- ifelse(csur92$anno=="1989-01-01",common[1,1],ifelse(csur92$anno=="1990-01-01",common[2,1],ifelse(csur92$anno=="1991-01-01",common[3,1],ifelse(csur92$anno=="1992-01-01",common[4,1],ifelse(csur92$anno=="1993-01-01",common[5,1],ifelse(csur92$anno=="1994-01-01",common[6,1],ifelse(csur92$anno=="1995-01-01",common[7,1],ifelse(csur92$anno=="1996-01-01",common[8,1],ifelse(csur92$anno=="1997-01-01",common[9,1],ifelse(csur92$anno=="1998-01-01",common[10,1],ifelse(csur92$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
 
-csur92$duofut <- ifelse(csur92$ofut > csur92$pofut & csur92$ofut != ".",1,ifelse(csur92$ofut==".",".",0))
-csur92$dimm <- ifelse(csur92$quoimm < csur92$pquoimm & csur92$pquoimm != ".",1,ifelse(csur92$ofut==".",".",0))
+csur92$duofut <- as.factor(ifelse(csur92$ofut > csur92$pofut & csur92$ofut != ".",1,ifelse(csur92$ofut==".",".",0)))
+csur92$dimm <- as.factor(ifelse(csur92$quoimm < csur92$pquoimm & csur92$pquoimm != ".",1,ifelse(csur92$ofut==".",".",0)))
 
 csur92[grep("acqui",colnames(csur92))]=NULL
 csur92[grep("scorpo",colnames(csur92))]=NULL
@@ -235,8 +235,8 @@ csur98$razd <- ifelse(csur98$desi==1 & csur98$paga==1,1,ifelse(csur98$desi=="." 
 csur98$raz98d <- csur98$razd
 
 #Dummies M&A's;
-csur98$duacq <- ifelse(csur98$acqui==1,1,0)
-csur98$dusco<- ifelse(csur98$scorpo==1,1,0)
+csur98$duacq <- ifelse(csur98$acqui==1,1,ifelse(is.na(csur98$scorpo),0,0))
+csur98$dusco<- ifelse(csur98$scorpo==1,1,ifelse(is.na(csur98$scorpo),0,0))
 
 #Dummy Industrial Group
 csur98$durg=ifelse(csur98$isgru==1,1,0)
@@ -325,7 +325,7 @@ csur01$ofut <- csur01$of/(csur01$of+csur01$utiln)
 	#Share of Tangible Assets over Total Assets
 csur01$quoimm <- csur01$imte/(csur01$aco+csur01$aim)
 	#Log of Sales
-csur01$lsales <- log(csur01$sales)
+csur01$lsales <- ifelse(log(csur01$sales)==NA|is.infinite(log(csur01$sales))==T, NA, log(csur01$sales))
 
 #Generating Percentiles for the Dummies Low Coverage - Low Collateral
 library(plyr)
@@ -392,18 +392,41 @@ What is done in the next code chunk is to create a **deta** variable that stores
 ```{r, cache = TRUE}
 #Drops firms in the balanced sample with large errors in the age field
 merge1$deta <- merge1$eta95c - merge1$eta92c
-merge1 <- subset(merge1,(merge1$deta > 1|is.na(merge1$deta)) & (merge1$deta < 5 |is.na(merge1$deta)))
+merge1 <- subset(merge1,(merge1$deta > 1 |is.na(merge1$deta)) & (merge1$deta < 5 |is.na(merge1$deta)))
 #forces small differences in age to square to 3
-merge1$eta95c <- ifelse((merge1$deta==2| merge1$deta==4), merge1$eta92c + 3, merge1$eta95c)
+merge1$eta95c <- ifelse((merge1$deta == 2 | merge1$deta == 4), merge1$eta92c + 3, merge1$eta95c)
 ```
 In the last code chunk of this part, a dummy variable named **persist** is created as an indicator of persistently constrained firms. If the firm was financially constrained in 92 (**raz92d** equals 1) and in 95 (**raz95d** equals 1) then the firm is considered persistently financially constrained. Then **perist** equals 1, or 0 in any other case. Only variables **indentif**, **eta92c**, **eta95c** and **persist** are kept in the data set that is also ordered by **identif** variable.<br>
 The end data set is then stored under the name <u>temp9295</u>.
 ```{r, cache = TRUE}
-merge1$persist <- ifelse((merge1$raz92d==1&merge1$raz95d==1), 1,ifelse((is.na(merge1$raz95d)&is.na(merge1$raz92d)),0,0))
+merge1$persist <- as.factor(ifelse((merge1$raz92d==1&merge1$raz95d==1), 1,ifelse((is.na(merge1$raz95d)&is.na(merge1$raz92d)),0,0)))
 temp9295 <- data.frame(merge1$identif, merge1$eta92c, merge1$eta95c, merge1$persist)
 colnames(temp9295) <- c("identif", "eta92c", "eta95c", "persist")
-temp9295 <- subset(temp9295,!is.na(eta92c) & !is.na(eta95c))
-temp9295 <- temp9295 [order(temp9295$identif),] 
+#temp9295 <- subset(temp9295,!is.na(eta92c) & !is.na(eta95c))
+temp9295 <- temp9295 [order(temp9295$identif),]
+```
+```{r}
+dim(csur92)
+names(csur92)
+summary(round(csur92$lsize, digits=3))
+summary(as.factor(csur92$razd))
+summary(as.factor(csur92$raz92d))
+summary(as.factor(csur92$duacq))
+summary(as.factor(csur92$dusco))
+summary(csur92$dupav1)
+summary(csur92$dupav2)
+summary(csur92$dupav3)
+summary(csur92$dupav4)
+summary(csur92$roa)
+summary(csur92$ofut)
+summary(csur92$quoimm)
+summary(csur92$lsales)
+summary(csur92$pofut)
+summary(csur92$pquoimm)
+summary(as.factor(csur92$duofut))
+summary(as.factor(csur92$dimm))
+
+
 ```
 <h6 align="left">2 - 1998 - 2001 survey data set.</h6>
 <br>
