@@ -151,23 +151,23 @@ A - Main Data Sets
 <p>Now that only observations only from 1992 are chosen via indicator ind==92, relevant variables can be are created.<br> In the code chunk below the log of size of sales (expressed in thousand euros) variable <strong>lsize</strong> is created. This will serve as proxy for size of firm.</p>
 <pre class="r"><code>csur92$lsize &lt;- ifelse(csur92$sales&lt;= 0 , NA, log(csur92$sales)) </code></pre>
 <p>In the next chunk of code, dummies establishing baseline definition of rationing, or financial constraint, are constructed out of <em>d17_1</em>, <em>d17_2</em>, <em>d17_3</em> or <em>d17_4</em> variables.These variables are coded answers for questions of whether or not a firm encountered difficulties in financing their last investment project due to insufficient cash flow, lack of collateral, insufficient long-term finance or high cost of debt respectively. In this case multiple answers were allowed with an intensity ranking from 1 to 3, missing values being coded as equal to 9.<br> As indicated in p.427 of the original article, “In the 1992 survey, we define a firm as constrained if at least one question of the first four causes was given the highest importance.” Hence the new rationing variable <strong>razd</strong> takes a value of 1, indicating a financially constrained firm, if above conditions are met, NA if observations for all four original variables are equal to 9, or missing, 0 in any other case.<br> A duplicated of <strong>razd</strong> variable therefore created is stored under the label <strong>raz92d</strong>.</p>
-<pre class="r"><code>csur92$razd &lt;- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &amp;csur92$d17_2==9 &amp; csur92$d17_3==9 &amp; csur92$d17_4==9,NA,0))) 
-csur92$raz92d &lt;- csur92$razd </code></pre>
+<pre class="r"><code>csur92$razd &lt;- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &amp;csur92$d17_2==9 &amp; csur92$d17_3==9 &amp; csur92$d17_4==9,NA,0)))
+csur92$raz92d &lt;- csur92$razd</code></pre>
 <p>In the next chunk of code, Merger and Acquisition indicators are created. A new variable <strong>duacq</strong> is coded as being equal to 1 if the firm was party to mergers or acquisition, and takes 0 in cases of both missing value or if the firm not being party to m&amp;a. This new variable is a version of ACQUI variable in original data set.<br> A new variable <strong>dusco</strong> is created as being equal to 1 if the firm was created through a spin off, and takes 0 in cases of both missing value or if the firm was not created through a spin off.This new variable is a version of SCORPO variable in original data set.<br></p>
 <pre class="r"><code>csur92$duacq &lt;- ifelse(is.na(csur92$acqui),0,ifelse(csur92$acqui==1,1,0))
 csur92$dusco&lt;- ifelse(is.na(csur92$scorpo),0,ifelse(csur92$scorpo==1,1,0))</code></pre>
 <p>In the next code chunk, sectoral dummies according to “Keith Pavitt” classification are given. In the original data the information is coded in PAV variable which takes values of 1 to 4 if firm belongs to traditional sector, or is scale intensive, or is a specialized supplier, or a high technology respectively. However in the present data set, this variable is separated into four, each specifically answering to one question. <strong>dupav1</strong> answers if firm is in traditional sector taking value 1 or not taking value 0. <strong>dupav2</strong> answers if firm is scale intensive taking value 1 or not taking value 0. <strong>dupav3</strong> answers if firm is a specialized supplier taking value 1 or not taking value 0. <strong>dupav4</strong> answers if firm is in high-technology taking value 1 or not taking value 0.</p>
-<pre class="r"><code>csur92$dupav1 &lt;- ifelse(csur92$pav == 1, 1, 0) 
-csur92$dupav2 &lt;- ifelse(csur92$pav == 2, 1, 0) 
-csur92$dupav3 &lt;- ifelse(csur92$pav == 3, 1, 0) 
+<pre class="r"><code>csur92$dupav1 &lt;- ifelse(csur92$pav == 1, 1, 0)
+csur92$dupav2 &lt;- ifelse(csur92$pav == 2, 1, 0)
+csur92$dupav3 &lt;- ifelse(csur92$pav == 3, 1, 0)
 csur92$dupav4 &lt;- ifelse(csur92$pav == 4, 1, 0) </code></pre>
 <p>In the next code chunk, balance sheet variables are defined. Variable <strong>roa</strong> represents the return on assets, as a ratio of earnings before financial expense, coded as variable UTIL in the original data set, over the sum of current &amp; net fixed assets, coded as variable ACO and AIM respectively in the original data set.Variable <strong>ofut</strong> represents a ratio of financial expenses represented by variable of in original data set, over operating profits as sum of financial expenses themselves and earnings before taxes and extraordinary items. It defines in essence the share of financial expenses in operating profits.<br> Variable <strong>quoimm</strong> represents the share of tangible assets, coded by variable IMTE in the original data set, over total assets defined as a sum between current and net fixed assets. Moreover, a new <strong>lsales</strong> variables which represents log of sales number is introduced. All balance sheet variables are expressed in thousands euros.</p>
-<pre class="r"><code>csur92$roa &lt;- (csur92$util/(csur92$aco+csur92$aim)) 
-csur92$ofut &lt;- (csur92$of/(csur92$of+csur92$utiln)) 
+<pre class="r"><code>csur92$roa &lt;- (csur92$util/(csur92$aco+csur92$aim))
+csur92$ofut &lt;- (csur92$of/(csur92$of+csur92$utiln))
 csur92$quoimm &lt;- (csur92$imte/(csur92$aco+csur92$aim))
 csur92$lsales &lt;- ifelse(csur92$sales&lt;= 0 , NA, log(csur92$sales))</code></pre>
 <p>The next code chunks generate dummies for low coverage or low collateral. The rationale behind it can be explained as follows. If the ratio of financial expenses over operating profits, as represented by variable <strong>ofut</strong>, is high, one can conclude that the firm is confronted with high cost of debt and has hence a low coverage. In the same manner, if the share of tangible assets over total asset, as represented by variable <strong>quoimm</strong> is low, one can conclude that the firm in question is confronted to insufficient collateral. Then we create variables <strong>pofut</strong> and <strong>pquoimm</strong> that represent 75<sup>th</sup> by year of the ratio financial expenses over operating profits, and 25<sup>th</sup> percentile by year of the share of tangible assets over total assets.<br> At last, variable <strong>duofut</strong> is an indicator of low coverage, taking value of 1 if value of financial expenses over operating profits for that year for that firm is in the 25% higher values indicating low coverage, 0 if not. In the same manner, variable <strong>dimm</strong> indicates low collateral, taking a value of 1 if the share of tangible assets over total assets for that firm in that year is in the lowest 25%, indicating low collateral, and 0 if not. At last data is ordered by the <em>identif</em> variable.</p>
-<pre class="r"><code>library(plyr) 
+<pre class="r"><code>library(plyr)
 common &lt;- data.frame(tapply(csur92$ofut, csur92$anno, quantile, probs=.75, na.rm = TRUE))
 a &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
 names(common)[1] &lt;- &quot;common&quot;
@@ -180,15 +180,37 @@ b &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
 names(common)[1] &lt;- &quot;common&quot;
 names(b)[1] &lt;- &quot;common&quot;
 common &lt;- data.frame(rbind(common, b))
-csur92$pquoimm &lt;- ifelse(csur92$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur92$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur92$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur92$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur92$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur92$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur92$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur92$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur92$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur92$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur92$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+csur92$duofut &lt;- as.factor(ifelse(round(csur92$ofut, digits = 4) &gt; round(csur92$pofut, digits = 4) &amp; round(csur92$ofut, digits = 4) != &quot;.&quot;,1,ifelse(round(csur92$ofut, digits = 4)==&quot;.&quot;,&quot;.&quot;,0)))
 
-csur92$duofut &lt;- as.factor(ifelse(csur92$ofut &gt; csur92$pofut &amp; csur92$ofut != &quot;.&quot;,1,ifelse(csur92$ofut==&quot;.&quot;,&quot;.&quot;,0)))
-csur92$dimm &lt;- as.factor(ifelse(csur92$quoimm &lt; csur92$pquoimm &amp; csur92$pquoimm != &quot;.&quot;,1,ifelse(csur92$ofut==&quot;.&quot;,&quot;.&quot;,0)))
+csur92$pquoimm &lt;- ifelse(csur92$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur92$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur92$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur92$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur92$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur92$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur92$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur92$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur92$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur92$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur92$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+csur92$dimm &lt;- as.factor(ifelse(((round(csur92$quoimm, digits = 4) &lt; round(csur92$pquoimm, digits = 4)) &amp; (round(csur92$pquoimm, digits = 4) != &quot;.&quot;)), 1, ifelse(round(csur92$quoimm, digits = 4)==&quot;.&quot;, &quot;.&quot;, 0)))
 
 csur92[grep(&quot;acqui&quot;,colnames(csur92))]=NULL
 csur92[grep(&quot;scorpo&quot;,colnames(csur92))]=NULL
 csur92[grep(&quot;^pav$&quot;,colnames(csur92))]=NULL
-csur92 &lt;- csur92[order(csur92$identif),]</code></pre>
+csur92 &lt;- csur92[order(csur92$identif),]
+a &lt;- csur92[8184, 58]</code></pre>
+It is to be noticed here that generating quantiles with R and STATA gives slightly different values for <strong>pquoimm</strong> &amp; <strong>pofut</strong>. The magnitude in differences is about 10<sup>-4</sup>. However this means that for one observation in the csur92 data set, <strong>identif</strong>=11636 for <strong>anno</strong>=1991 the resulting <strong>duofut</strong> variable has a value of 1 in R , while this value is 0 for STATA.<br> Observe that in generating <strong>duofut</strong> &amp; <strong>dimm</strong> variables, variables used to compute them out from were rounded to 4 digits. It is the number of digits that offers the minimum number of differences in csur92 between data generated with R and STATA.<br><br>
+<table style="width:50%" border="9" align="center"> <caption>
+Differences Between R &amp; STATA Generated csur92 Data Set
+</caption> <tr> <td>
+identif
+</td><td>
+anno
+</td><td>
+R
+</td><td>
+STATA
+</td></tr> <tr> <td>
+11636
+</td><td>
+1991
+</td><td>
+1
+</td><td>
+0
+</td></tr></table>
+<br>
 <h6 align="left">
 2 - Creating intermediary data set csur95
 </h6>
@@ -430,7 +452,7 @@ temp9295 &lt;- temp9295 [order(temp9295$identif),]</code></pre>
 ## [37] &quot;dip98&quot;    &quot;dip99&quot;    &quot;dip00&quot;    &quot;eta01&quot;    &quot;eta01n&quot;   &quot;ind01&quot;   
 ## [43] &quot;identif&quot;  &quot;lsize&quot;    &quot;razd&quot;     &quot;raz92d&quot;   &quot;duacq&quot;    &quot;dusco&quot;   
 ## [49] &quot;dupav1&quot;   &quot;dupav2&quot;   &quot;dupav3&quot;   &quot;dupav4&quot;   &quot;roa&quot;      &quot;ofut&quot;    
-## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;pquoimm&quot;  &quot;duofut&quot;   &quot;dimm&quot;</code></pre>
+## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;duofut&quot;   &quot;pquoimm&quot;  &quot;dimm&quot;</code></pre>
 <pre class="r"><code>summary(round(csur92$lsize, digits=3))</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
 ##       1       9      10      10      11      17    3209</code></pre>
@@ -481,7 +503,7 @@ temp9295 &lt;- temp9295 [order(temp9295$identif),]</code></pre>
 ## 4830 1610 3210</code></pre>
 <pre class="r"><code>summary(as.factor(csur92$dimm))</code></pre>
 <pre><code>##    0    1 NA's 
-## 4830 1613 3207</code></pre>
+## 4839 1612 3199</code></pre>
 <h6 align="left">
 2 - 1998 - 2001 survey data set.
 </h6>
