@@ -14,3 +14,5 @@ replicate findings of 1Angelini, Paolo, and Andrea Generale. 2008. “On the Evo
 		     IN csur92 <- for observation identif-11636 anno-1991 duofut=1 with R and duofut=0 with STATA<br>
 		     IN csur95 <- for observation identif-1839 anno-1992 duofut=1 with R and duofut=0 with STATA<br>
 		     Starting comparison csur98
+29.09.2014 22h:58 -> Finished comparison csur98 and csur00 - differences noted
+		     Starting with temp9295
