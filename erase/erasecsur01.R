@@ -25,7 +25,7 @@ w <- z + y + x
 
 csur01$razd <- ifelse(w == 233, NA, ifelse(w == 111|w == 211, 1, 0))
 
-csur01$raz98d <- csur01$razd
+csur01$raz01d <- csur01$razd
 
 #Dummies M&A's;
 csur01$duacq <- ifelse(is.na(csur01$acqui),0,ifelse(csur01$acqui==1,1,0))
@@ -79,7 +79,7 @@ c <- ifelse(is.na(csur01$paga), 200, 100)
 d <- a + b + c
 csur01$desi <- ifelse(d == 223, NA, ifelse(d == 111|d == 211|d == 121|d == 221, 1, 0))
 
-csur01$desi98 <- csur01$desi
+csur01$desi01 <- csur01$desi
 
 csur01[grep("acqui",colnames(csur01))] <- NULL
 csur01[grep("scorpo",colnames(csur01))] <- NULL

@@ -377,9 +377,9 @@ csur98[grep(&quot;scorpo&quot;,colnames(csur98))] &lt;- NULL
 csur98[grep(&quot;^pav$&quot;,colnames(csur98))] &lt;- NULL
 
 csur98 &lt;- csur98[order(csur98$identif),]</code></pre>
-It is to be noticed here that generating quantiles with R and STATA gives slightly different values for <strong>pquoimm</strong> &amp; <strong>pofut</strong>. The magnitude in differences is about 10<sup>-5</sup>. However this means that for four observations in the csur98 data set the resulting <strong>duofut</strong>, and for one observation in the same data set the resulting <strong>dimm</strong> variable have differences for data sets generated using R and STATA.<br> Observe that in generating <strong>duofut</strong> &amp; <strong>dimm</strong> variables, variables used to compute them out from were rounded to 5 digits. It is the number of digits that offers the minimum number of differences in csur98 between data generated with R and STATA.<br><br>
+It is to be noticed here that generating quantiles with R and STATA gives slightly different values for <strong>pquoimm</strong> &amp; <strong>pofut</strong>. The magnitude in differences is about 10<sup>-5</sup>. However this means that for four observations in the csur98 data set the resulting <strong>duofut</strong>, and for one observation in the same data set the resulting <strong>dimm</strong> variables have differences for data sets generated using R and STATA.<br> Observe that in generating <strong>duofut</strong> &amp; <strong>dimm</strong> variables, variables used to compute them out from were rounded to 5 digits. It is the number of digits that offers the minimum number of differences in csur98 between data generated with R and STATA.<br><br>
 <table style="width:50%" border="9" align="center"> <caption>
-Differences Between R &amp; STATA Generated csur95 Data Set
+Differences Between R &amp; STATA Generated csur98 Data Set
 </caption> <tr> <td>
 identif
 </td><td>
@@ -426,21 +426,24 @@ dimm = 0
 4 - Creating intermediary data set csur01
 </h6>
 <p>Here only observations current to 2001 (ranging 1998-200) for firms in data set are selected and saved in csur01 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1998-200) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 01 is not negative.<br> As for the rest, the methods of creating the new variables are done in exactly the same manner as for <u>csur98</u>. Except that copies of new variable <strong>razd</strong> and <strong>desi</strong> for <u>csur01</u> data set are stored in variables <strong>raz01d</strong> and <strong>desi01</strong>.</p>
-<pre class="r"><code>csur01 &lt;- subset(data, ind01 == 1 &amp; dip00 != &quot;.&quot;  &amp;  dip00 &gt; 0 &amp; eta01 &gt;= 0)
+<pre class="r"><code>csur01 &lt;- subset(data,ind01 == 1 &amp; dip00 != &quot;.&quot; &amp; dip00 &gt; 0 &amp; (eta01 &gt;= 0 | is.na(eta01)))
 
-#Size as Proxied by Total Sales;
-csur01$lsize &lt;- log(csur01$sales)
+#Dummy Rationing Baseline def.
+z &lt;- ifelse(is.na(csur01$desi), 3, ifelse(csur01$desi == 1, 1, 2))
+y &lt;- ifelse(is.na(csur01$chie), 30, ifelse(csur01$chie == 1, 10, 20))
+x &lt;- ifelse(is.na(csur01$paga), 200, 100)
+w &lt;- z + y + x
 
-#Dummy Rationing Baseline def.;
-csur01$razd &lt;- ifelse(csur01$desi==1 &amp; csur01$paga==1,1,ifelse(csur01$desi==&quot;.&quot; &amp; csur01$paga==&quot;.&quot;&amp; csur01$chie==&quot;.&quot;,NA,0))
-csur01$raz98d &lt;- csur01$razd
+csur01$razd &lt;- ifelse(w == 233, NA, ifelse(w == 111|w == 211, 1, 0))
+
+csur01$raz01d &lt;- csur01$razd
 
 #Dummies M&amp;A's;
-csur01$duacq &lt;- ifelse(csur01$acqui==1,1,0)
-csur01$dusco&lt;- ifelse(csur01$scorpo==1,1,0)
+csur01$duacq &lt;- ifelse(is.na(csur01$acqui),0,ifelse(csur01$acqui==1,1,0))
+csur01$dusco&lt;- ifelse(is.na(csur01$scorpo),0,ifelse(csur01$scorpo==1,1,0))
 
 #Dummy Industrial Group
-csur01$durg=ifelse(csur01$isgru==1,1,0)
+csur01$isgru &lt;- ifelse(is.na(csur01$isgru),0,ifelse(csur01$isgru==1,1,0))
 
 #4 Pavitt Sectoral Dummies;
 csur01$dupav1 &lt;- ifelse(csur01$pav==1,1,0)
@@ -449,45 +452,104 @@ csur01$dupav3 &lt;- ifelse(csur01$pav==3,1,0)
 csur01$dupav4 &lt;- ifelse(csur01$pav==4,1,0)
 
 #Defining Balance-Sheet Variables
-        #Return on Assets
-csur01$roa &lt;- csur01$util/(csur01$aco+csur01$aim)
-        #Financial Expenses/Operating Profits
-csur01$ofut &lt;- csur01$of/(csur01$of+csur01$utiln)
-    #Share of Tangible Assets over Total Assets
-csur01$quoimm &lt;- csur01$imte/(csur01$aco+csur01$aim)
-    #Log of Sales
-csur01$lsales &lt;- ifelse(log(csur01$sales)==NA|is.infinite(log(csur01$sales))==T, NA, log(csur01$sales))
+#Return on Assets
+csur01$roa &lt;- csur01$util/(csur01$aco + csur01$aim)
+#Financial Expenses/Operating Profits
+csur01$ofut &lt;- ifelse(csur01$of/(csur01$of + csur01$utiln) == Inf, NA , csur01$of/(csur01$of + csur01$utiln))
+#Share of Tangible Assets over Total Assets
+csur01$quoimm &lt;- csur01$imte/(csur01$aco + csur01$aim)
+#Log of Sales
+csur01$lsales &lt;- ifelse(csur01$sales&lt;= 0 , NA, log(csur01$sales))
 
 #Generating Percentiles for the Dummies Low Coverage - Low Collateral
 library(plyr)
 common &lt;- data.frame(tapply(csur01$ofut, csur01$anno, quantile, probs=.75, na.rm = TRUE))
-a &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+a &lt;- data.frame(rep(NA, times = 9))
+b &lt;- data.frame(rep(NA, times = (3 - nrow(common))))
 names(common)[1] &lt;- &quot;common&quot;
 names(a)[1] &lt;- &quot;common&quot;
-common &lt;- data.frame(rbind(common,a))
+names(b)[1] &lt;- &quot;common&quot;
+common &lt;- data.frame(rbind(a, common, b))
 csur01$pofut &lt;- ifelse(csur01$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur01$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur01$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur01$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur01$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur01$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur01$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur01$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur01$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur01$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur01$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
 
 common &lt;- data.frame(tapply(csur01$quoimm, csur01$anno, quantile, probs=.25, na.rm = TRUE))
-b &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+a &lt;- data.frame(rep(NA, times = 9))
+b &lt;- data.frame(rep(NA, times = (3 - nrow(common))))
 names(common)[1] &lt;- &quot;common&quot;
+names(a)[1] &lt;- &quot;common&quot;
 names(b)[1] &lt;- &quot;common&quot;
-common &lt;- data.frame(rbind(common, b))
+common &lt;- data.frame(rbind(a, common, b))
+csur01$duofut &lt;- as.factor(ifelse(round(csur01$ofut, digits = 6) &gt; round(csur01$pofut, digits = 6) &amp; round(csur01$ofut, digits = 6) != &quot;.&quot;,1,ifelse(round(csur01$ofut, digits = 6)==&quot;.&quot;,&quot;.&quot;,0)))
+
 csur01$pquoimm &lt;- ifelse(csur01$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur01$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur01$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur01$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur01$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur01$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur01$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur01$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur01$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur01$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur01$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+csur01$dimm &lt;- as.factor(ifelse(((round(csur01$quoimm, digits = 5) &lt; round(csur01$pquoimm, digits = 5)) &amp; (round(csur01$pquoimm, digits = 5) != &quot;.&quot;)), 1, ifelse(round(csur01$quoimm, digits = 5)==&quot;.&quot;, &quot;.&quot;, 0)))
 
-csur01$duofut &lt;- ifelse(csur01$ofut &gt; csur01$pofut &amp; csur01$ofut != &quot;.&quot;,1,ifelse(csur01$ofut==&quot;.&quot;,&quot;.&quot;,0))
-csur01$dimm &lt;- ifelse(csur01$quoimm &lt; csur01$pquoimm &amp; csur01$pquoimm != &quot;.&quot;,1,ifelse(csur01$ofut==&quot;.&quot;,&quot;.&quot;,0))
+a &lt;- ifelse(is.na(csur01$desi), 3,ifelse(csur01$desi == 2, 2, 1))
+b &lt;- ifelse(is.na(csur01$chie), 20, 10)
+c &lt;- ifelse(is.na(csur01$paga), 200, 100)
+d &lt;- a + b + c
+csur01$desi &lt;- ifelse(d == 223, NA, ifelse(d == 111|d == 211|d == 121|d == 221, 1, 0))
 
-#Dummy Desiring more Credit
-
-csur01$desi &lt;- ifelse(csur01$desi==1,1,ifelse(csur01$desi==2,0,ifelse(csur01$desi==&quot;.&quot; &amp; csur01$paga==&quot;.&quot; &amp; csur01$chie==&quot;.&quot;,NA,0)))
-csur01$desi98 &lt;- csur01$desi
+csur01$desi01 &lt;- csur01$desi
 
 csur01[grep(&quot;acqui&quot;,colnames(csur01))] &lt;- NULL
 csur01[grep(&quot;scorpo&quot;,colnames(csur01))] &lt;- NULL
-csur01[grep(&quot;isgru&quot;,colnames(csur01))] &lt;- NULL
 csur01[grep(&quot;^pav$&quot;,colnames(csur01))] &lt;- NULL
 
-csur01 = csur01[order(csur01$identif),]</code></pre>
+csur01 &lt;- csur01[order(csur01$identif),]</code></pre>
+It is to be noticed here that generating quantiles with R and STATA gives slightly different values for <strong>pquoimm</strong> &amp; <strong>pofut</strong>. The magnitude in differences is about 10<sup>-5</sup>. However this means that for two observations in the csur01 data set the resulting <strong>duofut</strong>, and for three observations in the same data set the resulting <strong>dimm</strong> variables have differences for data sets generated using R and STATA.<br> Observe that in generating <strong>duofut</strong> &amp; <strong>dimm</strong> variables, variables used to compute them out from were rounded to 5 digits. It is the number of digits that offers the minimum number of differences in csur98 between data generated with R and STATA.<br><br>
+<table style="width:50%" border="9" align="center"> <caption>
+Differences Between R &amp; STATA Generated csur01 Data Set
+</caption> <tr> <td>
+identif
+</td><td>
+anno
+</td><td>
+R
+</td><td>
+STATA
+</td></tr> <tr> <td>
+59520065
+</td><td>
+1999
+</td><td>
+duofut = 1
+</td><td>
+duofut = 0
+</td></tr><tr> <td>
+1427530075
+</td><td>
+2000
+</td><td>
+duofut = 1
+</td><td>
+duofut = 0
+</td></tr><tr> <td>
+1514750982
+</td><td>
+1999
+</td><td>
+dimm = 1
+</td><td>
+dimm = 0
+</td></tr><tr> <td>
+1588800986
+</td><td>
+2000
+</td><td>
+dimm = 1
+</td><td>
+dimm = 0
+</td></tr><tr> <td>
+2665140833
+</td><td>
+1998
+</td><td>
+dimm = 1
+</td><td>
+dimm = 0
+</td></tr></table>
+<p><br></p>
 <h4 align="left"> 
 B - 1992 - 1995 and 1998 - 2001 surveys data sets &amp; Main Data Sets Corrections
 </h4>
@@ -526,70 +588,6 @@ temp9295 &lt;- data.frame(merge1$identif, merge1$eta92c, merge1$eta95c, merge1$p
 colnames(temp9295) &lt;- c(&quot;identif&quot;, &quot;eta92c&quot;, &quot;eta95c&quot;, &quot;persist&quot;)
 #temp9295 &lt;- subset(temp9295,!is.na(eta92c) &amp; !is.na(eta95c))
 temp9295 &lt;- temp9295 [order(temp9295$identif),]</code></pre>
-<pre class="r"><code>dim(csur92)</code></pre>
-<pre><code>## [1] 9650   60</code></pre>
-<pre class="r"><code>names(csur92)</code></pre>
-<pre><code>##  [1] &quot;d17_1&quot;    &quot;d17_2&quot;    &quot;d17_3&quot;    &quot;d17_4&quot;    &quot;d17_5&quot;    &quot;dip89&quot;   
-##  [7] &quot;dip90&quot;    &quot;dip91&quot;    &quot;eta92&quot;    &quot;isgru&quot;    &quot;anno&quot;     &quot;aco&quot;     
-## [13] &quot;aim&quot;      &quot;sales&quot;    &quot;util&quot;     &quot;utiln&quot;    &quot;of&quot;       &quot;imim&quot;    
-## [19] &quot;imte&quot;     &quot;ind92&quot;    &quot;nonotten&quot; &quot;avrebacc&quot; &quot;dip92&quot;    &quot;dip93&quot;   
-## [25] &quot;dip94&quot;    &quot;eta95&quot;    &quot;ind95&quot;    &quot;dip95&quot;    &quot;dip96&quot;    &quot;dip97&quot;   
-## [31] &quot;eta98&quot;    &quot;desi&quot;     &quot;chie&quot;     &quot;paga&quot;     &quot;eta98n&quot;   &quot;ind98&quot;   
-## [37] &quot;dip98&quot;    &quot;dip99&quot;    &quot;dip00&quot;    &quot;eta01&quot;    &quot;eta01n&quot;   &quot;ind01&quot;   
-## [43] &quot;identif&quot;  &quot;lsize&quot;    &quot;razd&quot;     &quot;raz92d&quot;   &quot;duacq&quot;    &quot;dusco&quot;   
-## [49] &quot;dupav1&quot;   &quot;dupav2&quot;   &quot;dupav3&quot;   &quot;dupav4&quot;   &quot;roa&quot;      &quot;ofut&quot;    
-## [55] &quot;quoimm&quot;   &quot;lsales&quot;   &quot;pofut&quot;    &quot;duofut&quot;   &quot;pquoimm&quot;  &quot;dimm&quot;</code></pre>
-<pre class="r"><code>summary(round(csur92$lsize, digits=3))</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-##       1       9      10      10      11      17    3209</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$razd))</code></pre>
-<pre><code>##    0    1 NA's 
-## 8982  667    1</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$raz92d))</code></pre>
-<pre><code>##    0    1 NA's 
-## 8982  667    1</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$duacq))</code></pre>
-<pre><code>##    0    1 
-## 7002 2648</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$dusco))</code></pre>
-<pre><code>##    0    1 
-## 8950  700</code></pre>
-<pre class="r"><code>summary(csur92$dupav1)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##   0.000   0.000   0.000   0.424   1.000   1.000</code></pre>
-<pre class="r"><code>summary(csur92$dupav2)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##   0.000   0.000   0.000   0.364   1.000   1.000</code></pre>
-<pre class="r"><code>summary(csur92$dupav3)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##   0.000   0.000   0.000   0.183   0.000   1.000</code></pre>
-<pre class="r"><code>summary(csur92$dupav4)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##   0.000   0.000   0.000   0.029   0.000   1.000</code></pre>
-<pre class="r"><code>summary(csur92$roa)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-##       0       0       0       0       0       1    3199</code></pre>
-<pre class="r"><code>summary(csur92$ofut)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-##    -468       0       1       1       1     780    3210</code></pre>
-<pre class="r"><code>summary(csur92$quoimm)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-##       0       0       0       0       0       1    3199</code></pre>
-<pre class="r"><code>summary(csur92$lsales)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-##       1       9      10      10      11      17    3209</code></pre>
-<pre class="r"><code>summary(csur92$pofut)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##   0.809   0.809   0.887   0.903   0.958   0.958</code></pre>
-<pre class="r"><code>summary(csur92$pquoimm)</code></pre>
-<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##   0.110   0.110   0.116   0.121   0.129   0.129</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$duofut))</code></pre>
-<pre><code>##    0    1 NA's 
-## 4830 1610 3210</code></pre>
-<pre class="r"><code>summary(as.factor(csur92$dimm))</code></pre>
-<pre><code>##    0    1 NA's 
-## 4839 1612 3199</code></pre>
 <h6 align="left">
 2 - 1998 - 2001 survey data set.
 </h6>

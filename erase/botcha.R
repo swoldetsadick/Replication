@@ -25,3 +25,19 @@ summary(as.factor(csur95$dimm))
 summary(as.factor(erasecsur95$dimm))
 summary(as.factor(csur95$duofut))
 summary(as.factor(erasecsur95$duofut))
+
+library("foreign")
+erasecsur01 <- read.table("~/Downloads/Desktop/Replication/erase/erasecsur01.txt", header=TRUE, quote="\"")
+csur01 <- read.dta("~/Downloads/Desktop/compare/csur01.dta")
+a <- csur98$dimm
+b <- erasecsur98$dimm
+c <- csur98$identif
+d <- csur98$anno
+e <- data.frame(cbind(a, b, c, d))
+e$diff <- e$a - e$b
+summary(e$diff)
+f <- subset(e, is.na(diff))
+sum(is.na(f$a))
+sum(is.na(f$b))
+summary(as.factor(e$diff))
+may <- subset(e, diff == -1)
