@@ -62,10 +62,10 @@ names(common)[1] <- "common"
 names(a)[1] <- "common"
 names(b)[1] <- "common"
 common <- data.frame(rbind(a, common, b))
-csur95$duofut <- as.factor(ifelse(round(csur95$ofut, digits = 4) > round(csur95$pofut, digits = 4) & round(csur95$ofut, digits = 4) != ".",1,ifelse(round(csur95$ofut, digits = 4)==".",".",0)))
+csur95$duofut <- as.factor(ifelse(round(csur95$ofut, digits = 5) > round(csur95$pofut, digits = 5) & round(csur95$ofut, digits = 5) != ".",1,ifelse(round(csur95$ofut, digits = 5)==".",".",0)))
 
 csur95$pquoimm <- ifelse(csur95$anno=="1989-01-01",common[1,1],ifelse(csur95$anno=="1990-01-01",common[2,1],ifelse(csur95$anno=="1991-01-01",common[3,1],ifelse(csur95$anno=="1992-01-01",common[4,1],ifelse(csur95$anno=="1993-01-01",common[5,1],ifelse(csur95$anno=="1994-01-01",common[6,1],ifelse(csur95$anno=="1995-01-01",common[7,1],ifelse(csur95$anno=="1996-01-01",common[8,1],ifelse(csur95$anno=="1997-01-01",common[9,1],ifelse(csur95$anno=="1998-01-01",common[10,1],ifelse(csur95$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
-csur95$dimm <- as.factor(ifelse(((round(csur95$quoimm, digits = 4) < round(csur95$pquoimm, digits = 4)) & (round(csur95$pquoimm, digits = 4) != ".")), 1, ifelse(round(csur95$quoimm, digits = 4)==".", ".", 0)))
+csur95$dimm <- as.factor(ifelse(((round(csur95$quoimm, digits = 5) < round(csur95$pquoimm, digits = 5)) & (round(csur95$pquoimm, digits = 5) != ".")), 1, ifelse(round(csur95$quoimm, digits = 5)==".", ".", 0)))
 
 csur95[grep("acqui",colnames(csur95))] <- NULL
 csur95[grep("scorpo",colnames(csur95))] <- NULL

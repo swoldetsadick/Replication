@@ -1,26 +1,26 @@
 library("foreign")
-erasecsur92 <- read.table("~/Downloads/Desktop/Replication/erase/erasecsur92.txt", header=TRUE, quote="\"")
-csur92 <- read.dta("~/Downloads/Desktop/compare/csur92.dta")
+erasecsur95 <- read.table("~/Downloads/Desktop/Replication/erase/erasecsur95.txt", header=TRUE, quote="\"")
+csur95 <- read.dta("~/Downloads/Desktop/compare/csur95.dta")
 
-names1 <- names(csur92)
-names2 <- names(erasecsur92)
+names1 <- names(csur95)
+names2 <- names(erasecsur95)
 names1
 names2
 identical(names1,names2)
 
-maxs <- rep(0, times = (length(csur92)- 44 + 1))
-mins <- rep(0, times = (length(csur92)- 44 + 1))
-nas <- rep(0, times = (length(csur92)- 44 + 1))
+maxs <- rep(0, times = (length(csur95)- 44 + 1))
+mins <- rep(0, times = (length(csur95)- 44 + 1))
+nas <- rep(0, times = (length(csur95)- 44 + 1))
 
-for (i in 44:length(csur92)){
+for (i in 44:length(csur95)){
 
-        maxs[(i-43)] <- max(round((csur92[,i] - erasecsur92[,i]), digits = 4), na.rm = TRUE)
-        mins[(i-43)] <- min(round((csur92[,i] - erasecsur92[,i]), digits = 4), na.rm = TRUE)
-        nas[(i-43)] <- (sum(is.na(csur92[,i])) - sum(is.na(erasecsur92[,i])))
+        maxs[(i-43)] <- max(round((csur95[,i] - erasecsur95[,i]), digits = 4), na.rm = TRUE)
+        mins[(i-43)] <- min(round((csur95[,i] - erasecsur95[,i]), digits = 4), na.rm = TRUE)
+        nas[(i-43)] <- (sum(is.na(csur95[,i])) - sum(is.na(erasecsur95[,i])))
 }
 
 all <- data.frame(cbind(maxs, mins, nas))
-name <- names(csur92[,44:length(csur92)])
+name <- names(csur95[,44:length(csur95)])
 row.names(all) <- name
 View(all)
 

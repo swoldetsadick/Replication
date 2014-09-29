@@ -217,18 +217,22 @@ STATA
 <p>The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of <strong>razd</strong> variable present in the data set above, and the second in the introduction of a new variable <strong>dugr</strong>.<br> Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur95 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br></p>
 <pre class="r"><code>csur95 &lt;- subset(data,ind95==1 &amp; dip94!=&quot;.&quot; &amp; dip94&gt;0)
 #Size as Proxied by Total Sales;
-csur95$lsize &lt;- log(csur95$sales)</code></pre>
+csur95$lsize &lt;- ifelse(csur95$sales&lt;= 0 , NA, log(csur95$sales))</code></pre>
 <p>The baseline definition of financial constraints in the 1995 survey is defined somehow different compared to 1992 survey. The construction of <strong>razd</strong> variable indicating financial constraint depends on variables <em>NONOTTEN</em> and <em>AVREBACC</em> in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions “Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?” and “Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?” respectively.<br> If the first question was answered with a yes, then the firm is considered as financially constrained and variable <strong>razd</strong> will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.<br> A copy of <strong>razd</strong> variable is made in variable <strong>raz95d</strong>.</p>
 <pre class="r"><code>#Dummy Rationing Baseline def.;
-csur95$razd &lt;- ifelse(csur95$nonotten==1,1,ifelse(csur95$nonotten==&quot;.&quot; &amp; csur95$avrebacc==&quot;.&quot;,NA,0))
-csur95$raz95d &lt;- csur95$razd</code></pre>
+csur95$razd &lt;- ifelse(csur95$nonotten == &quot;.&quot;|is.na(csur95$nonotten) == TRUE, 0, ifelse(csur95$nonotten==1, 1, 0))
+csur95$raz95d &lt;- csur95$razd
+a &lt;- ifelse(is.na(csur95$nonotten)==TRUE, 0, ifelse(csur95$nonotten == 0, 20, 10))
+b &lt;- ifelse(is.na(csur95$avrebacc)==TRUE, 0, ifelse(csur95$avrebacc == 0, 2, 1))
+c &lt;- a + b
+csur95$razd &lt;- ifelse(c==0, NA, ifelse(c==10|c==11|c==12, 1, 0))</code></pre>
 <p>The M&amp;A dummies are basically defined exactly as in above section.</p>
 <pre class="r"><code>#Dummies M&amp;A's;
-csur95$duacq &lt;- ifelse(csur95$acqui==1,1,0)
-csur95$dusco &lt;- ifelse(csur95$scorpo==1,1,0)</code></pre>
+csur95$duacq &lt;- ifelse(is.na(csur95$acqui),0,ifelse(csur95$acqui==1,1,0))
+csur95$dusco&lt;- ifelse(is.na(csur95$scorpo),0,ifelse(csur95$scorpo==1,1,0))</code></pre>
 <p>Here a new variable <strong>dugr</strong> is introduced based on <em>isgru</em> variable of original data set. The latter has a value of 1, if the firm in question is part of an industrial group, and 0 if not with possible NA values. However, <strong>dugr</strong> is constructed as equal to 1 if the firm is part of an industrial group, and 0 in any other situations.</p>
 <pre class="r"><code>#Dummy Industrial Group
-csur95$durg &lt;- ifelse(csur95$isgru==1,1,0)</code></pre>
+csur95$durg &lt;- ifelse(is.na(csur95$isgru),0,ifelse(csur95$isgru==1,1,0))</code></pre>
 <p>The following steps are defined exactly as in above section.</p>
 <pre class="r"><code>#4 Pavitt Sectoral Dummies;
 csur95$dupav1 &lt;- ifelse(csur95$pav==1,1,0)
@@ -237,33 +241,37 @@ csur95$dupav3 &lt;- ifelse(csur95$pav==3,1,0)
 csur95$dupav4 &lt;- ifelse(csur95$pav==4,1,0)
 
 #Defining Balance-Sheet Variables
-        #Return on Assets
+#Return on Assets
 csur95$roa &lt;- csur95$util/(csur95$aco + csur95$aim)
-        #Financial Expenses/Operating Profits
-csur95$ofut &lt;- csur95$of/(csur95$of + csur95$utiln)
-    #Share of Tangible Assets over Total Assets
+#Financial Expenses/Operating Profits
+csur95$ofut &lt;- ifelse(csur95$of/(csur95$of + csur95$utiln) == Inf, NA , csur95$of/(csur95$of + csur95$utiln))
+#Share of Tangible Assets over Total Assets
 csur95$quoimm &lt;- csur95$imte/(csur95$aco + csur95$aim)
-    #Log of Sales
-csur95$lsales &lt;- log(csur95$sales)
+#Log of Sales
+csur95$lsales &lt;- ifelse(csur95$sales&lt;= 0 , NA, log(csur95$sales))
 
 #Generating Percentiles for the Dummies Low Coverage - Low Collateral
 library(plyr)
 common &lt;- data.frame(tapply(csur95$ofut, csur95$anno, quantile, probs=.75, na.rm = TRUE))
-a &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+a &lt;- data.frame(rep(NA, times = 3))
+b &lt;- data.frame(rep(NA, times = (9 - nrow(common))))
 names(common)[1] &lt;- &quot;common&quot;
 names(a)[1] &lt;- &quot;common&quot;
-common &lt;- data.frame(rbind(common,a))
+names(b)[1] &lt;- &quot;common&quot;
+common &lt;- data.frame(rbind(a, common, b))
 csur95$pofut &lt;- ifelse(csur95$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur95$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur95$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur95$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur95$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur95$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur95$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur95$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur95$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur95$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur95$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
 
 common &lt;- data.frame(tapply(csur95$quoimm, csur95$anno, quantile, probs=.25, na.rm = TRUE))
-b &lt;- data.frame(rep(NA, times = (12 - nrow(common))))
+a &lt;- data.frame(rep(NA, times = 3))
+b &lt;- data.frame(rep(NA, times = (9 - nrow(common))))
 names(common)[1] &lt;- &quot;common&quot;
+names(a)[1] &lt;- &quot;common&quot;
 names(b)[1] &lt;- &quot;common&quot;
-common &lt;- data.frame(rbind(common, b))
-csur95$pquoimm &lt;- ifelse(csur95$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur95$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur95$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur95$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur95$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur95$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur95$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur95$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur95$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur95$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur95$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+common &lt;- data.frame(rbind(a, common, b))
+csur95$duofut &lt;- as.factor(ifelse(round(csur95$ofut, digits = 5) &gt; round(csur95$pofut, digits = 5) &amp; round(csur95$ofut, digits = 5) != &quot;.&quot;,1,ifelse(round(csur95$ofut, digits = 5)==&quot;.&quot;,&quot;.&quot;,0)))
 
-csur95$duofut &lt;- ifelse(csur95$ofut &gt; csur95$pofut &amp; csur95$ofut != &quot;.&quot;,1,ifelse(csur95$ofut==&quot;.&quot;,&quot;.&quot;,0))
-csur95$dimm &lt;- ifelse(csur95$quoimm &lt; csur95$pquoimm &amp; csur95$pquoimm != &quot;.&quot;,1,ifelse(csur95$ofut==&quot;.&quot;,&quot;.&quot;,0))
+csur95$pquoimm &lt;- ifelse(csur95$anno==&quot;1989-01-01&quot;,common[1,1],ifelse(csur95$anno==&quot;1990-01-01&quot;,common[2,1],ifelse(csur95$anno==&quot;1991-01-01&quot;,common[3,1],ifelse(csur95$anno==&quot;1992-01-01&quot;,common[4,1],ifelse(csur95$anno==&quot;1993-01-01&quot;,common[5,1],ifelse(csur95$anno==&quot;1994-01-01&quot;,common[6,1],ifelse(csur95$anno==&quot;1995-01-01&quot;,common[7,1],ifelse(csur95$anno==&quot;1996-01-01&quot;,common[8,1],ifelse(csur95$anno==&quot;1997-01-01&quot;,common[9,1],ifelse(csur95$anno==&quot;1998-01-01&quot;,common[10,1],ifelse(csur95$anno==&quot;1999-01-01&quot;,common[11,1],common[12,1])))))))))))
+csur95$dimm &lt;- as.factor(ifelse(((round(csur95$quoimm, digits = 5) &lt; round(csur95$pquoimm, digits = 5)) &amp; (round(csur95$pquoimm, digits = 5) != &quot;.&quot;)), 1, ifelse(round(csur95$quoimm, digits = 5)==&quot;.&quot;, &quot;.&quot;, 0)))
 
 csur95[grep(&quot;acqui&quot;,colnames(csur95))] &lt;- NULL
 csur95[grep(&quot;scorpo&quot;,colnames(csur95))] &lt;- NULL
@@ -271,6 +279,27 @@ csur95[grep(&quot;isgru&quot;,colnames(csur95))] &lt;- NULL
 csur95[grep(&quot;^pav$&quot;,colnames(csur95))] &lt;- NULL
 
 csur95 &lt;- csur95[order(csur95$identif),]</code></pre>
+It is to be noticed here that generating quantiles with R and STATA gives slightly different values for <strong>pquoimm</strong> &amp; <strong>pofut</strong>. The magnitude in differences is about 10<sup>-5</sup>. However this means that for one observation in the csur92 data set, <strong>identif</strong>=1839 for <strong>anno</strong>=1992 the resulting <strong>duofut</strong> variable has a value of 1 in R , while this value is 0 for STATA.<br> Observe that in generating <strong>duofut</strong> &amp; <strong>dimm</strong> variables, variables used to compute them out from were rounded to 5 digits. It is the number of digits that offers the minimum number of differences in csur95 between data generated with R and STATA.<br><br>
+<table style="width:50%" border="9" align="center"> <caption>
+Differences Between R &amp; STATA Generated csur95 Data Set
+</caption> <tr> <td>
+identif
+</td><td>
+anno
+</td><td>
+R
+</td><td>
+STATA
+</td></tr> <tr> <td>
+1839
+</td><td>
+1992
+</td><td>
+1
+</td><td>
+0
+</td></tr></table>
+<br>
 <h6 align="left">
 3 - Creating intermediary data set csur98
 </h6>
