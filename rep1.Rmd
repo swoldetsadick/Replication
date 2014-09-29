@@ -151,7 +151,7 @@ a <- csur92[8184, 58]
 ```
 It is to be noticed here that generating quantiles with R and STATA gives slightly different values for **pquoimm** & **pofut**. The magnitude in differences is about 10<sup>-4</sup>. However this means that for one observation in the csur92 data set, **identif**=11636 for **anno**=1991 the resulting **duofut** variable has a value of `r a` in R , while this value is 0 for STATA.<br>
 Observe that in generating **duofut** & **dimm** variables, variables used to compute them out from were rounded to 4 digits. It is the number of digits that offers the minimum number of differences in csur92 between data generated with R and STATA.<br><br>
-<table style="width:50%" border="9" align="center"> <caption>Differences Between R & STATA Generated csur92 Data Set</caption> <tr> <td>identif</td><td>anno</td><td>R</td><td>STATA</td></tr> <tr> <td>11636</td><td>1991</td><td>1</td><td>0</td></tr></table><br>
+<table style="width:50%" border="9" align="center"> <caption>Differences Between R & STATA Generated csur92 Data Set</caption> <tr> <td>identif</td><td>anno</td><td>R</td><td>STATA</td></tr> <tr> <td>11636</td><td>1991</td><td>duofut = 1</td><td>duofut = 0</td></tr></table><br>
 <h6 align="left">2 - Creating intermediary data set csur95</h6>
 The description of the methods of creation of the different variables described above for <u>csur92</u> data set holds for <u>csur95</u> data set, except in two minor differences. The first in the building of **razd** variable present in the data set above, and the second in the introduction of a new variable **dugr**.<br>
 Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur95 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br>
@@ -233,28 +233,32 @@ csur95 <- csur95[order(csur95$identif),]
 ```
 It is to be noticed here that generating quantiles with R and STATA gives slightly different values for **pquoimm** & **pofut**. The magnitude in differences is about 10<sup>-5</sup>. However this means that for one observation in the csur92 data set, **identif**=1839 for **anno**=1992 the resulting **duofut** variable has a value of 1 in R , while this value is 0 for STATA.<br>
 Observe that in generating **duofut** & **dimm** variables, variables used to compute them out from were rounded to 5 digits. It is the number of digits that offers the minimum number of differences in csur95 between data generated with R and STATA.<br><br>
-<table style="width:50%" border="9" align="center"> <caption>Differences Between R & STATA Generated csur95 Data Set</caption> <tr> <td>identif</td><td>anno</td><td>R</td><td>STATA</td></tr> <tr> <td>1839</td><td>1992</td><td>1</td><td>0</td></tr></table><br>
+<table style="width:50%" border="9" align="center"> <caption>Differences Between R & STATA Generated csur95 Data Set</caption> <tr> <td>identif</td><td>anno</td><td>R</td><td>STATA</td></tr> <tr> <td>1839</td><td>1992</td><td>duofut = 1</td><td>duofut = 0</td></tr></table><br>
 <h6 align="left">3 - Creating intermediary data set csur98</h6>
 The creation of csur98 data set departs in three majors ways and in one major way from the construction of csur92 data set. First a minor adjustment in the selection of observation only contemporary to 1998.Here only observations current to 1998 (ranging 1995-1997) for firms in data set are selected and saved in csur98 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1995-1997) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 98 is not negative.<br>
 Additionally a new variable **isgru** is introduced in the exact same manner as described for data set csur98.<br>
 ```{r, cache = TRUE}
-csur98 <- subset(data,ind98 == 1 & dip97 != "." & dip97 > 0 & eta98 >= 0 )
-#Size as Proxied by Total Sales;
-csur98$lsize <- log(csur98$sales)
+csur98 <- subset(data,ind98 == 1 & dip97 != "." & dip97 > 0 & (eta98 >= 0 | is.na(eta98)))
 ```
 The baseline definition of financial constraints in the 1998 survey is defined somehow differently compared to both 1992 and 1995 surveys. The construction of financial constraint indicator **razd** is based on variables *desi*, *chie* and *paga* of the original data set. These variables represent code a yes or no question (1 being yes and 2 being no) to questions, "In the previous year the firm wanted more credit at the prevailing market conditions.", "In the previous year the firm asked for more credit but was turned down by the bank." and "In the previous year the firm would have accepted to pay a slightly higher loan rate." respectively.<br>
 If answers to first question and second question both were positive, then the firm is considered as financially constrained and **razd** variable will be equal to 1, else if answers to all three questions were missing the firm is considered to be have no information on financial constraint having an NA value for **razd**, for all other situation the new variable will have a value of zero indicating no financial constraint of firm involved. A copy of this new variable is stored in variable **razd98d**.
 ```{r, cache = TRUE}
-#Dummy Rationing Baseline def.;
-csur98$razd <- ifelse(csur98$desi==1 & csur98$paga==1,1,ifelse(csur98$desi=="." & csur98$paga=="."& csur98$chie==".",NA,0))
+#Size as Proxied by Total Sales;
+z <- ifelse(is.na(csur98$desi), 3, ifelse(csur98$desi == 1, 1, 2))
+y <- ifelse(is.na(csur98$chie), 30, ifelse(csur98$chie == 1, 10, 20))
+x <- ifelse(is.na(csur98$paga), 200, 100)
+w <- z + y + x
+
+csur98$razd <- ifelse(w == 233, NA, ifelse(w == 111|w == 211, 1, 0))
+
 csur98$raz98d <- csur98$razd
 
 #Dummies M&A's;
-csur98$duacq <- ifelse(csur98$acqui==1,1,ifelse(is.na(csur98$scorpo),0,0))
-csur98$dusco<- ifelse(csur98$scorpo==1,1,ifelse(is.na(csur98$scorpo),0,0))
+csur98$duacq <- ifelse(is.na(csur98$acqui),0,ifelse(csur98$acqui==1,1,0))
+csur98$dusco<- ifelse(is.na(csur98$scorpo),0,ifelse(csur98$scorpo==1,1,0))
 
 #Dummy Industrial Group
-csur98$durg=ifelse(csur98$isgru==1,1,0)
+csur98$isgru <- ifelse(is.na(csur98$isgru),0,ifelse(csur98$isgru==1,1,0))
 
 #4 Pavitt Sectoral Dummies;
 csur98$dupav1 <- ifelse(csur98$pav==1,1,0)
@@ -263,49 +267,61 @@ csur98$dupav3 <- ifelse(csur98$pav==3,1,0)
 csur98$dupav4 <- ifelse(csur98$pav==4,1,0)
 
 #Defining Balance-Sheet Variables
-        #Return on Assets
-csur98$roa <- csur98$util/(csur98$aco+csur98$aim)
-	#Financial Expenses/Operating Profits
-csur98$ofut <- csur98$of/(csur98$of+csur98$utiln)
-	#Share of Tangible Assets over Total Assets
-csur98$quoimm <- csur98$imte/(csur98$aco+csur98$aim)
-	#Log of Sales
-csur98$lsales <- log(csur98$sales)
+#Return on Assets
+csur98$roa <- csur98$util/(csur98$aco + csur98$aim)
+#Financial Expenses/Operating Profits
+csur98$ofut <- ifelse(csur98$of/(csur98$of + csur98$utiln) == Inf, NA , csur98$of/(csur98$of + csur98$utiln))
+#Share of Tangible Assets over Total Assets
+csur98$quoimm <- csur98$imte/(csur98$aco + csur98$aim)
+#Log of Sales
+csur98$lsales <- ifelse(csur98$sales<= 0 , NA, log(csur98$sales))
 
 #Generating Percentiles for the Dummies Low Coverage - Low Collateral
 library(plyr)
 common <- data.frame(tapply(csur98$ofut, csur98$anno, quantile, probs=.75, na.rm = TRUE))
-a <- data.frame(rep(NA, times = (12 - nrow(common))))
+a <- data.frame(rep(NA, times = 6))
+b <- data.frame(rep(NA, times = (6 - nrow(common))))
 names(common)[1] <- "common"
 names(a)[1] <- "common"
-common <- data.frame(rbind(common,a))
+names(b)[1] <- "common"
+common <- data.frame(rbind(a, common, b))
 csur98$pofut <- ifelse(csur98$anno=="1989-01-01",common[1,1],ifelse(csur98$anno=="1990-01-01",common[2,1],ifelse(csur98$anno=="1991-01-01",common[3,1],ifelse(csur98$anno=="1992-01-01",common[4,1],ifelse(csur98$anno=="1993-01-01",common[5,1],ifelse(csur98$anno=="1994-01-01",common[6,1],ifelse(csur98$anno=="1995-01-01",common[7,1],ifelse(csur98$anno=="1996-01-01",common[8,1],ifelse(csur98$anno=="1997-01-01",common[9,1],ifelse(csur98$anno=="1998-01-01",common[10,1],ifelse(csur98$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
 
 common <- data.frame(tapply(csur98$quoimm, csur98$anno, quantile, probs=.25, na.rm = TRUE))
-b <- data.frame(rep(NA, times = (12 - nrow(common))))
+a <- data.frame(rep(NA, times = 6))
+b <- data.frame(rep(NA, times = (6 - nrow(common))))
 names(common)[1] <- "common"
+names(a)[1] <- "common"
 names(b)[1] <- "common"
-common <- data.frame(rbind(common, b))
-csur98$pquoimm <- ifelse(csur98$anno=="1989-01-01",common[1,1],ifelse(csur98$anno=="1990-01-01",common[2,1],ifelse(csur98$anno=="1991-01-01",common[3,1],ifelse(csur98$anno=="1992-01-01",common[4,1],ifelse(csur98$anno=="1993-01-01",common[5,1],ifelse(csur98$anno=="1994-01-01",common[6,1],ifelse(csur98$anno=="1995-01-01",common[7,1],ifelse(csur98$anno=="1996-01-01",common[8,1],ifelse(csur98$anno=="1997-01-01",common[9,1],ifelse(csur98$anno=="1998-01-01",common[10,1],ifelse(csur98$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+common <- data.frame(rbind(a, common, b))
+csur98$duofut <- as.factor(ifelse(round(csur98$ofut, digits = 6) > round(csur98$pofut, digits = 6) & round(csur98$ofut, digits = 6) != ".",1,ifelse(round(csur98$ofut, digits = 6)==".",".",0)))
 
-csur98$duofut <- ifelse(csur98$ofut > csur98$pofut & csur98$ofut != ".",1,ifelse(csur98$ofut==".",".",0))
-csur98$dimm <- ifelse(csur98$quoimm < csur98$pquoimm & csur98$pquoimm != ".",1,ifelse(csur98$ofut==".",".",0))
+csur98$pquoimm <- ifelse(csur98$anno=="1989-01-01",common[1,1],ifelse(csur98$anno=="1990-01-01",common[2,1],ifelse(csur98$anno=="1991-01-01",common[3,1],ifelse(csur98$anno=="1992-01-01",common[4,1],ifelse(csur98$anno=="1993-01-01",common[5,1],ifelse(csur98$anno=="1994-01-01",common[6,1],ifelse(csur98$anno=="1995-01-01",common[7,1],ifelse(csur98$anno=="1996-01-01",common[8,1],ifelse(csur98$anno=="1997-01-01",common[9,1],ifelse(csur98$anno=="1998-01-01",common[10,1],ifelse(csur98$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+csur98$dimm <- as.factor(ifelse(((round(csur98$quoimm, digits = 5) < round(csur98$pquoimm, digits = 5)) & (round(csur98$pquoimm, digits = 5) != ".")), 1, ifelse(round(csur98$quoimm, digits = 5)==".", ".", 0)))
 ```
 A new variable **desi** is introduced here. This new variable is a dummy indicating if the firm desired more credit or not, based on *desi* variable in the original data set as described above. If the latter is equal to 1, **desi** variable will be equal to 1 indicating that the firm would have desired more credit the year in question. If all *desi*, *paga* and *chie* variables of the old data set had missing values the new **desi** variable will have an NA value. In any other case the value is equal to 0 indicating that firm did not need additional credit.<br>
 A copy of this new variable **desi** is stored in new variable called **desi98**.
 ```{r, cache = TRUE}
 #Dummy Desiring more Credit
 
-csur98$desi <- ifelse(csur98$desi==1,1,ifelse(csur98$desi==2,0,ifelse(csur98$desi=="." & csur98$paga=="." & csur98$chie==".",NA,0)))
+a <- ifelse(is.na(csur98$desi), 3,ifelse(csur98$desi == 2, 2, 1))
+b <- ifelse(is.na(csur98$chie), 20, 10)
+c <- ifelse(is.na(csur98$paga), 200, 100)
+d <- a + b + c
+csur98$desi <- ifelse(d == 223, NA, ifelse(d == 111|d == 211|d == 121|d == 221, 1, 0))
+
 csur98$desi98 <- csur98$desi
 
 csur98[grep("acqui",colnames(csur98))] <- NULL
 csur98[grep("scorpo",colnames(csur98))] <- NULL
-csur98[grep("isgru",colnames(csur98))] <- NULL
 csur98[grep("^pav$",colnames(csur98))] <- NULL
 
-csur98 = csur98[order(csur98$identif),]
+csur98 <- csur98[order(csur98$identif),]
 ```
+It is to be noticed here that generating quantiles with R and STATA gives slightly different values for **pquoimm** & **pofut**. The magnitude in differences is about 10<sup>-5</sup>. However this means that for four observations in the csur98 data set the resulting **duofut**, and for one observation in the same data set the resulting **dimm** variables have differences for data sets generated using R and STATA.<br>
+Observe that in generating **duofut** & **dimm** variables, variables used to compute them out from were rounded to 5 digits. It is the number of digits that offers the minimum number of differences in csur98 between data generated with R and STATA.<br><br>
+<table style="width:50%" border="9" align="center"> <caption>Differences Between R & STATA Generated csur95 Data Set</caption> <tr> <td>identif</td><td>anno</td><td>R</td><td>STATA</td></tr> <tr> <td>1383790044</td><td>1997</td><td>duofut = 1</td><td>duofut = 0</td></tr><tr> <td>1795940377</td><td>1995</td><td>duofut = 1</td><td>duofut = 0</td></tr><tr> <td>7203080159</td><td>1996</td><td>duofut = 1</td><td>duofut = 0</td></tr><tr> <td>327440278</td><td>1996</td><td>dimm = 1</td><td>dimm = 0</td></tr></table><br>
+
 <h6 align="left">4 - Creating intermediary data set csur01</h6>
 Here only observations current to 2001 (ranging 1998-200) for firms in data set are selected and saved in csur01 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1998-200) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 01 is not negative.<br>
 As for the rest, the methods of creating the new variables are done in exactly the same manner as for <u>csur98</u>. Except that copies of new variable **razd** and **desi** for <u>csur01</u> data set are stored in variables **raz01d** and **desi01**.
@@ -420,29 +436,7 @@ colnames(temp9295) <- c("identif", "eta92c", "eta95c", "persist")
 #temp9295 <- subset(temp9295,!is.na(eta92c) & !is.na(eta95c))
 temp9295 <- temp9295 [order(temp9295$identif),]
 ```
-```{r}
-dim(csur92)
-names(csur92)
-summary(round(csur92$lsize, digits=3))
-summary(as.factor(csur92$razd))
-summary(as.factor(csur92$raz92d))
-summary(as.factor(csur92$duacq))
-summary(as.factor(csur92$dusco))
-summary(csur92$dupav1)
-summary(csur92$dupav2)
-summary(csur92$dupav3)
-summary(csur92$dupav4)
-summary(csur92$roa)
-summary(csur92$ofut)
-summary(csur92$quoimm)
-summary(csur92$lsales)
-summary(csur92$pofut)
-summary(csur92$pquoimm)
-summary(as.factor(csur92$duofut))
-summary(as.factor(csur92$dimm))
 
-
-```
 <h6 align="left">2 - 1998 - 2001 survey data set.</h6>
 <br>
 <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.

@@ -17,8 +17,14 @@ classes # displaying classes
 
 csur98 <- subset(data,ind98 == 1 & dip97 != "." & dip97 > 0 & (eta98 >= 0 | is.na(eta98)))
 
-#Dummy Rationing Baseline def.;
-csur98$razd <- ifelse(csur98$desi==1 & csur98$paga==1,1,ifelse(csur98$desi=="." & csur98$paga=="."& csur98$chie==".",NA,0))
+#Dummy Rationing Baseline def.
+z <- ifelse(is.na(csur98$desi), 3, ifelse(csur98$desi == 1, 1, 2))
+y <- ifelse(is.na(csur98$chie), 30, ifelse(csur98$chie == 1, 10, 20))
+x <- ifelse(is.na(csur98$paga), 200, 100)
+w <- z + y + x
+
+csur98$razd <- ifelse(w == 233, NA, ifelse(w == 111|w == 211, 1, 0))
+
 csur98$raz98d <- csur98$razd
 
 #Dummies M&A's;
@@ -62,7 +68,7 @@ names(common)[1] <- "common"
 names(a)[1] <- "common"
 names(b)[1] <- "common"
 common <- data.frame(rbind(a, common, b))
-csur98$duofut <- as.factor(ifelse(round(csur98$ofut, digits = 5) > round(csur98$pofut, digits = 5) & round(csur98$ofut, digits = 5) != ".",1,ifelse(round(csur98$ofut, digits = 5)==".",".",0)))
+csur98$duofut <- as.factor(ifelse(round(csur98$ofut, digits = 6) > round(csur98$pofut, digits = 6) & round(csur98$ofut, digits = 6) != ".",1,ifelse(round(csur98$ofut, digits = 6)==".",".",0)))
 
 csur98$pquoimm <- ifelse(csur98$anno=="1989-01-01",common[1,1],ifelse(csur98$anno=="1990-01-01",common[2,1],ifelse(csur98$anno=="1991-01-01",common[3,1],ifelse(csur98$anno=="1992-01-01",common[4,1],ifelse(csur98$anno=="1993-01-01",common[5,1],ifelse(csur98$anno=="1994-01-01",common[6,1],ifelse(csur98$anno=="1995-01-01",common[7,1],ifelse(csur98$anno=="1996-01-01",common[8,1],ifelse(csur98$anno=="1997-01-01",common[9,1],ifelse(csur98$anno=="1998-01-01",common[10,1],ifelse(csur98$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
 csur98$dimm <- as.factor(ifelse(((round(csur98$quoimm, digits = 5) < round(csur98$pquoimm, digits = 5)) & (round(csur98$pquoimm, digits = 5) != ".")), 1, ifelse(round(csur98$quoimm, digits = 5)==".", ".", 0)))
