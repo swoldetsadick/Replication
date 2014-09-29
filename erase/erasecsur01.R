@@ -81,9 +81,9 @@ csur01$desi <- ifelse(d == 223, NA, ifelse(d == 111|d == 211|d == 121|d == 221, 
 
 csur01$desi98 <- csur01$desi
 
-csur98[grep("acqui",colnames(csur98))] <- NULL
-csur98[grep("scorpo",colnames(csur98))] <- NULL
-csur98[grep("^pav$",colnames(csur98))] <- NULL
+csur01[grep("acqui",colnames(csur01))] <- NULL
+csur01[grep("scorpo",colnames(csur01))] <- NULL
+csur01[grep("^pav$",colnames(csur01))] <- NULL
 
-csur98 <- csur98[order(csur01$identif),]
+csur01 <- csur01[order(csur01$identif),]
 write.table(csur01, "./erasecsur01.txt", row.names=FALSE)
