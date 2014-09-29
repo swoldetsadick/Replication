@@ -17,8 +17,14 @@ classes # displaying classes
 csur95 <- subset(data,ind95==1 & dip94!="." & dip94>0)
 #Size as Proxied by Total Sales;
 csur95$lsize <- ifelse(csur95$sales<= 0 , NA, log(csur95$sales))
-csur95$razd <- ifelse(csur95$nonotten==1,1,ifelse(csur95$nonotten=="." & csur95$avrebacc==".",NA,0))
+csur95$razd <- ifelse(csur95$nonotten == "."|is.na(csur95$nonotten) == TRUE, 0, ifelse(csur95$nonotten==1, 1, 0))
 csur95$raz95d <- csur95$razd
+a <- ifelse(is.na(csur95$nonotten)==TRUE, 0, ifelse(csur95$nonotten == 0, 20, 10))
+b <- ifelse(is.na(csur95$avrebacc)==TRUE, 0, ifelse(csur95$avrebacc == 0, 2, 1))
+c <- a + b
+csur95$razd <- ifelse(c==0, NA, ifelse(c==10|c==11|c==12, 1, 0))
+#csur95$razd <- ifelse(csur95$nonotten == "."|is.na(csur95$nonotten) == TRUE, 0, ifelse(csur95$nonotten==1, 1, 0))
+
 csur95$duacq <- ifelse(is.na(csur95$acqui),0,ifelse(csur95$acqui==1,1,0))
 csur95$dusco<- ifelse(is.na(csur95$scorpo),0,ifelse(csur95$scorpo==1,1,0))
 csur95$durg <- ifelse(is.na(csur95$isgru),0,ifelse(csur95$isgru==1,1,0))
