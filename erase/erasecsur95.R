@@ -38,7 +38,7 @@ csur95$dupav4 <- ifelse(csur95$pav==4,1,0)
 #Return on Assets
 csur95$roa <- csur95$util/(csur95$aco + csur95$aim)
 #Financial Expenses/Operating Profits
-csur95$ofut <- csur95$of/(csur95$of + csur95$utiln)
+csur95$ofut <- ifelse(csur95$of/(csur95$of + csur95$utiln) == Inf, NA , csur95$of/(csur95$of + csur95$utiln))
 #Share of Tangible Assets over Total Assets
 csur95$quoimm <- csur95$imte/(csur95$aco + csur95$aim)
 #Log of Sales
@@ -47,21 +47,25 @@ csur95$lsales <- ifelse(csur95$sales<= 0 , NA, log(csur95$sales))
 #Generating Percentiles for the Dummies Low Coverage - Low Collateral
 library(plyr)
 common <- data.frame(tapply(csur95$ofut, csur95$anno, quantile, probs=.75, na.rm = TRUE))
-a <- data.frame(rep(NA, times = (12 - nrow(common))))
+a <- data.frame(rep(NA, times = 3))
+b <- data.frame(rep(NA, times = (9 - nrow(common))))
 names(common)[1] <- "common"
 names(a)[1] <- "common"
-common <- data.frame(rbind(common,a))
+names(b)[1] <- "common"
+common <- data.frame(rbind(a, common, b))
 csur95$pofut <- ifelse(csur95$anno=="1989-01-01",common[1,1],ifelse(csur95$anno=="1990-01-01",common[2,1],ifelse(csur95$anno=="1991-01-01",common[3,1],ifelse(csur95$anno=="1992-01-01",common[4,1],ifelse(csur95$anno=="1993-01-01",common[5,1],ifelse(csur95$anno=="1994-01-01",common[6,1],ifelse(csur95$anno=="1995-01-01",common[7,1],ifelse(csur95$anno=="1996-01-01",common[8,1],ifelse(csur95$anno=="1997-01-01",common[9,1],ifelse(csur95$anno=="1998-01-01",common[10,1],ifelse(csur95$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
 
 common <- data.frame(tapply(csur95$quoimm, csur95$anno, quantile, probs=.25, na.rm = TRUE))
-b <- data.frame(rep(NA, times = (12 - nrow(common))))
+a <- data.frame(rep(NA, times = 3))
+b <- data.frame(rep(NA, times = (9 - nrow(common))))
 names(common)[1] <- "common"
+names(a)[1] <- "common"
 names(b)[1] <- "common"
-common <- data.frame(rbind(common, b))
-csur95$pquoimm <- ifelse(csur95$anno=="1989-01-01",common[1,1],ifelse(csur95$anno=="1990-01-01",common[2,1],ifelse(csur95$anno=="1991-01-01",common[3,1],ifelse(csur95$anno=="1992-01-01",common[4,1],ifelse(csur95$anno=="1993-01-01",common[5,1],ifelse(csur95$anno=="1994-01-01",common[6,1],ifelse(csur95$anno=="1995-01-01",common[7,1],ifelse(csur95$anno=="1996-01-01",common[8,1],ifelse(csur95$anno=="1997-01-01",common[9,1],ifelse(csur95$anno=="1998-01-01",common[10,1],ifelse(csur95$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+common <- data.frame(rbind(a, common, b))
+csur95$duofut <- as.factor(ifelse(round(csur95$ofut, digits = 4) > round(csur95$pofut, digits = 4) & round(csur95$ofut, digits = 4) != ".",1,ifelse(round(csur95$ofut, digits = 4)==".",".",0)))
 
-csur95$duofut <- ifelse(csur95$ofut > csur95$pofut & csur95$ofut != ".",1,ifelse(csur95$ofut==".",".",0))
-csur95$dimm <- ifelse(csur95$quoimm < csur95$pquoimm & csur95$pquoimm != ".",1,ifelse(csur95$ofut==".",".",0))
+csur95$pquoimm <- ifelse(csur95$anno=="1989-01-01",common[1,1],ifelse(csur95$anno=="1990-01-01",common[2,1],ifelse(csur95$anno=="1991-01-01",common[3,1],ifelse(csur95$anno=="1992-01-01",common[4,1],ifelse(csur95$anno=="1993-01-01",common[5,1],ifelse(csur95$anno=="1994-01-01",common[6,1],ifelse(csur95$anno=="1995-01-01",common[7,1],ifelse(csur95$anno=="1996-01-01",common[8,1],ifelse(csur95$anno=="1997-01-01",common[9,1],ifelse(csur95$anno=="1998-01-01",common[10,1],ifelse(csur95$anno=="1999-01-01",common[11,1],common[12,1])))))))))))
+csur95$dimm <- as.factor(ifelse(((round(csur95$quoimm, digits = 4) < round(csur95$pquoimm, digits = 4)) & (round(csur95$pquoimm, digits = 4) != ".")), 1, ifelse(round(csur95$quoimm, digits = 4)==".", ".", 0)))
 
 csur95[grep("acqui",colnames(csur95))] <- NULL
 csur95[grep("scorpo",colnames(csur95))] <- NULL
