@@ -415,22 +415,26 @@ colnames(csuro92) <- c("identif", "eta92", "raz92d")
 A new data set <u>csuro95</u> is created out of <u>csur95</u> data set, by taking only variables **raz95d** as defined in section A2, variables **eta95** and **identif**, present in original data set and representing the age of the firm in 1995 and a unique firm identifier respectively but exclusively for observations made on 1994.
 ```{r, cache = TRUE}
 suppressMessages(library(lubridate))
-csuro95 <- subset(csur95, year(csur95$anno) == 1994)
+csuro95 <- subset(csur95, as.numeric(year(csur95$anno)) == 1994)
 csuro95 <- data.frame(csuro95$identif, csuro95$eta95, csuro95$raz95d)
 colnames(csuro95) <- c("identif", "eta95", "raz95d")
-
 merge1 <- merge(csuro92, csuro95, by=c("identif"), all=TRUE)
+ind1 <- ifelse(is.na(merge1$eta92) & is.na(merge1$raz92d), 1, 2)
+ind2 <- ifelse(is.na(merge1$eta95) & is.na(merge1$raz95d), 10, 20)
+ind3 <- ind1 + ind2
+merge1$merge <- as.integer(ifelse(ind3 == 12, 1, ifelse(ind3 == 21, 2, ifelse(ind3 == 11, NA, 3))))
 merge1 <- merge1[order(merge1$identif), ]
 ```
 In the end, the two new data sets <u>csuro92</u> and <u>csuro95</u> are merged by **identif**, filling all very probable empty observations by an NA. The obtained data set is ordered by identif, and named <u>merge1</u>.<br>
-What is done in the code chunk below is to compute the missing age data of a firm present in both surveys, but whose age in one survey is missing. Hence, a firm present in both 95 and 92 survey whose age in 95 is there, but for whom age in 92 is missing or illogical, age in 92 is set equal to age in 95 - 3.<br>
+What is done in the code chunk below is to compute the missing age data of a firm present in both surveys, but whose age in one survey is missing. A firm present in both 95 and 92 survey whose age in 95 is there, but for whom age in 92 is missing or illogical, age in 92 is set equal to age in 95 - 3.<br>
 Similarly, a firm present in both 95 and 92 survey whose age in 92 is there, but for whom age in 95 is missing or illogical, age in 95 is set equal to age in 92 + 3. In any other case original observations of age from data sets <u>csuro92</u> and <u>csuro95</u> are kept. These new ages are stored in variables called **eta92c** and **eta95c**. Original **eta92** and **eta95** age variables are deleted.<br>
 ```{r, cache = TRUE}
 #uses age from one survey to compute age.survey
-merge1$eta92c <- ifelse((is.na(merge1$eta92)|merge1$eta92<0) & (!is.na(merge1$eta95) ) & (is.na(merge1$eta95) & is.na(merge1$raz95d))|(is.na(merge1$eta92)&is.na(merge1$raz92d)),merge1$eta95-3,merge1$eta92)
-merge1$eta95c <- ifelse((is.na(merge1$eta95)|merge1$eta95<0) & (!is.na(merge1$eta92) ) & (is.na(merge1$eta95) & is.na(merge1$raz95d))|(is.na(merge1$eta92)&is.na(merge1$raz92d)),merge1$eta92+3,merge1$eta95)    
+merge1$eta92c <- ifelse((is.na(merge1$eta92)|merge1$eta92<0) & (!is.na(merge1$eta95) ) & merge1$merge == 3, merge1$eta95 - 3, merge1$eta92)
+merge1$eta95c <- ifelse((is.na(merge1$eta95)|merge1$eta95<0) & (!is.na(merge1$eta92) ) & merge1$merge == 3, merge1$eta92 + 3, merge1$eta95)    
 merge1[grep("^eta92$",colnames(merge1))] <- NULL
 merge1[grep("^eta95$",colnames(merge1))] <- NULL
+merge1[grep("^merge$",colnames(merge1))] <- NULL
 ```
 What is done in the next code chunk is to create a **deta** variable that stores the differences in age between 1995 and 1992 as proxied by **eta95c** and **eta92c** as seen above. Then observations with large error in age field, or for deta superior to 5 or inferior to 1, observation is deleted. Next small differences in age field, for deta = 2 and = 4 the difference is squared to 3, by replacing value of **eta95c** by value of **eta92c** plus 3.
 ```{r, cache = TRUE}
@@ -438,18 +442,18 @@ What is done in the next code chunk is to create a **deta** variable that stores
 merge1$deta <- merge1$eta95c - merge1$eta92c
 merge1 <- subset(merge1,(merge1$deta > 1 |is.na(merge1$deta)) & (merge1$deta < 5 |is.na(merge1$deta)))
 #forces small differences in age to square to 3
-merge1$eta95c <- ifelse((merge1$deta == 2 | merge1$deta == 4), merge1$eta92c + 3, merge1$eta95c)
+merge1$eta95c <- ifelse(is.na(merge1$deta), merge1$eta95c,ifelse(merge1$deta == 2 | merge1$deta == 4, merge1$eta92c + 3, merge1$eta95c))
 ```
 In the last code chunk of this part, a dummy variable named **persist** is created as an indicator of persistently constrained firms. If the firm was financially constrained in 92 (**raz92d** equals 1) and in 95 (**raz95d** equals 1) then the firm is considered persistently financially constrained. Then **perist** equals 1, or 0 in any other case. Only variables **indentif**, **eta92c**, **eta95c** and **persist** are kept in the data set that is also ordered by **identif** variable.<br>
 The end data set is then stored under the name <u>temp9295</u>.
 ```{r, cache = TRUE}
-merge1$persist <- as.factor(ifelse((merge1$raz92d==1&merge1$raz95d==1), 1,ifelse((is.na(merge1$raz95d)&is.na(merge1$raz92d)),0,0)))
+merge1$russia <- as.numeric(merge1$raz92d) + as.numeric(merge1$raz95d)
+merge1$persist <- as.factor(ifelse( is.na(merge1$russia), 0, ifelse(merge1$russia == 2, 1, 0)))
 temp9295 <- data.frame(merge1$identif, merge1$eta92c, merge1$eta95c, merge1$persist)
 colnames(temp9295) <- c("identif", "eta92c", "eta95c", "persist")
-#temp9295 <- subset(temp9295,!is.na(eta92c) & !is.na(eta95c))
 temp9295 <- temp9295 [order(temp9295$identif),]
 ```
-
+In generating data set <u>temp9295</u> no differences were observed between data set generated with STATA and one generated with R.
 <h6 align="left">2 - 1998 - 2001 survey data set.</h6>
 <br>
-<sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.
+<h6><sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.</h6>

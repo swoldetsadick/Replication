@@ -36,7 +36,11 @@ merge1 <- subset(merge1,(merge1$deta > 1 |is.na(merge1$deta)) & (merge1$deta < 5
 #forces small differences in age to square to 3
 merge1$eta95c <- ifelse(is.na(merge1$deta), merge1$eta95c,ifelse(merge1$deta == 2 | merge1$deta == 4, merge1$eta92c + 3, merge1$eta95c))
 
-merge1$persist <- as.factor(ifelse((merge1$raz92d==1&merge1$raz95d==1), 1,ifelse((is.na(merge1$raz95d)&is.na(merge1$raz92d)),0,0)))
+merge1$russia <- merge1$raz92d + merge1$raz95d
+
+merge1$persist <- as.factor(ifelse( is.na(merge1$russia), 0, ifelse(merge1$russia == 2, 1, 0)))
+
+
 temp9295 <- data.frame(merge1$identif, merge1$eta92c, merge1$eta95c, merge1$persist)
 colnames(temp9295) <- c("identif", "eta92c", "eta95c", "persist")
 
