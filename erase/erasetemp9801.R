@@ -17,8 +17,24 @@ merge2 <- merge(temp98, temp01, by = c("identif"), all = TRUE)
 merge2$eta98n <- merge2$eta01n - 3
 merge2$diff <- merge2$eta01 - merge2$eta98
 
-merge2$eta98 <- ifelse((merge2$diff !=3|is.na(merge2$diff)) & (merge2$eta01== merge2$eta01n| is.na(merge2$eta01)| is.na(merge2$eta01n)) & !(is.na(merge2$eta98n))& merge2$eta98n>=0, merge2$eta98n, merge2$eta98)
-merge2$eta01 <- ifelse((merge2$diff !=3|is.na(merge2$diff)) & (merge2$eta98== merge2$eta98n|(is.na(merge2$eta98)| is.na(merge2$eta98n))) & !(is.na(merge2$eta01n))& merge2$eta01n>=0, merge2$eta01n, merge2$eta01)
+z <- ifelse(merge2$diff == 3, 1, 0)
+y <- ifelse(merge2$eta01 == merge2$eta01n, 0, 1)
+x <- ifelse(!is.na(merge2$eta98n), 0, 1)
+w <- ifelse(merge2$eta98n >= 0, 0, 1)
+v <- z + y + x + w
+
+merge2$eta98 <- ifelse(w, merge2$eta98 == merge2$eta98n, merge2$eta98)
+
+u <- ifelse(merge2$diff == 3, 1, 0)
+t <- ifelse(merge2$eta98 == merge2$eta98n, 0, 1)
+s <- ifelse(!is.na(merge2$eta01n), 0, 1)
+r <- ifelse(merge2$eta01n >= 0, 0, 1)
+q <- z + y + x + w
+
+merge2$eta01 <- ifelse(q, merge2$eta01 == merge2$eta01n, merge2$eta01)
+
+#merge2$eta98 <- ifelse((merge2$diff !=3|is.na(merge2$diff)) & (merge2$eta01== merge2$eta01n| is.na(merge2$eta01)| is.na(merge2$eta01n)) & !(is.na(merge2$eta98n))& merge2$eta98n>=0, merge2$eta98n, merge2$eta98)
+#merge2$eta01 <- ifelse((merge2$diff !=3|is.na(merge2$diff)) & (merge2$eta98== merge2$eta98n|(is.na(merge2$eta98)| is.na(merge2$eta98n))) & !(is.na(merge2$eta01n))& merge2$eta01n>=0, merge2$eta01n, merge2$eta01)
 
 merge2$deta <- merge2$eta01 - merge2$eta98
 merge2 <- subset(merge2,(merge2$deta > 1| is.na(merge2$deta))&(merge2$deta < 5| is.na(merge2$deta)))
