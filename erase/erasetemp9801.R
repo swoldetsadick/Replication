@@ -14,4 +14,5 @@ temp01 <- temp01[order(temp01$identif),]
 
 merge2 <- merge(temp98, temp01, by = c("identif"), all = TRUE)
 
-             
+merge2$eta98n <- eta01n - 3
+merge2$diff <- eta01 - eta98
