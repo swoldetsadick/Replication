@@ -22,10 +22,17 @@ merge2$eta01 <- ifelse((merge2$diff !=3|is.na(merge2$diff)) & (merge2$eta98== me
 
 merge2$deta <- merge2$eta01 - merge2$eta98
 merge2 <- subset(merge2,(merge2$deta > 1| is.na(merge2$deta))&(merge2$deta < 5| is.na(merge2$deta)))
-
 merge2$eta01 <- ifelse((merge2$deta==2|merge2$deta==4)&!is.na(merge2$deta),merge2$eta98+3,merge2$eta01)
-merge2$persist <- ifelse((merge2$raz98d==1& merge2$raz01d==1)&(is.na(merge2$raz98d)&is.na(merge2$raz01d)),1,0)
-merge2$perdesi <- ifelse((merge2$desi98==1& merge2$desi01==1)&(is.na(merge2$desi98)&is.na(merge2$desi01)),1,0)
+
+a <- ifelse(is.na(merge2$raz98d), 3, ifelse(merge2$raz98d == 1, 1, 2))
+b <- ifelse(is.na(merge2$raz01d), 3, ifelse(merge2$raz01d == 1, 1, 2))
+c <- a + b
+merge2$persist <- ifelse(c == 2, 1, 0)
+
+d <- ifelse(is.na(merge2$desi98), 3, ifelse(merge2$desi98 == 1, 1, 2))
+e <- ifelse(is.na(merge2$desi01), 3, ifelse(merge2$desi01 == 1, 1, 2))
+f <- d + e
+merge2$perdesi <- ifelse(f == 2, 1, 0)
 
 
 temp9801 <- merge2[,c(1, 2, 6, 12, 13)]
