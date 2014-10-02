@@ -7,8 +7,6 @@ classes <- rep(0, times=ncol(data)) # creating vector to store classes of data c
 for(i in 1:ncol(data)) {classes[i] <- class(data[,i])} # for each column in data finding class storing it in vector "classes"
 names #displaying names
 classes# displaying classes
-suppressWarnings(for(i in 1:14) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
-suppressWarnings(for(i in 23:ncol(data)) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
 data$anno <- as.Date(paste(as.character(data$anno),paste("01","01",sep="-"),sep="-"),"%Y-%m-%d") # changing class for anno variable to date
 data$identif <- as.factor(data$identif) # indentif number is treated as factor
 classes <- rep(0, times=ncol(data)) # creating vector to store classes of data column
@@ -50,4 +48,4 @@ csur92[grep("acqui",colnames(csur92))]=NULL
 csur92[grep("scorpo",colnames(csur92))]=NULL
 csur92[grep("^pav$",colnames(csur92))]=NULL
 csur92 <- csur92[order(csur92$identif),]
-write.table(csur92, "./erasecsur92.txt", row.names=FALSE)
+write.table(csur92, "./csur92.txt", row.names=FALSE)

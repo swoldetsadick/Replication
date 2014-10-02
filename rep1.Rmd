@@ -62,8 +62,6 @@ classes# displaying classes
 <br>As can be seen above although all variables listed in the readme file are present in our data set, all of them seem to have a numeric class in R. However, variable *anno* should be treated as a variable of **Date class** and variables *ACO*, *AIM*, *SALES*, *sales*, *UTIL*, *UTILN*, *OF*, *IMIM* and *IMTE* should have **class numeric**, *indentif* **class factor**, while *the rest* should have **class integer**.<br>
 In the following chunk of code does exactly that.
 ```{r, cache = TRUE}
-suppressWarnings(for(i in 1:14) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
-suppressWarnings(for(i in 23:ncol(data)) {data[,i] <- as.integer(data[,i])}) # changing class of other variables to integer
 data$anno <- as.Date(paste(as.character(data$anno),paste("01","01",sep="-"),sep="-"),"%Y-%m-%d") # changing class for anno variable to date
 data$identif <- as.factor(data$identif) # indentif number is treated as factor
 classes <- rep(0, times=ncol(data)) # creating vector to store classes of data column
@@ -86,30 +84,30 @@ Data from each different years need slightly adjusted code to process them compa
 Generating data for firms observed in 1992, each have unique identifier that they keep over the years.<br>
 Here only observations current to 1992 (ranging 1989-1991) for firms in data set are selected and saved in csur92 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1989-1991) in order to be able to calculate labor growth.<br>
 ```{r, cache=TRUE}
-csur92 <- subset(data,ind92==1 & dip91!="." & dip91>0) 
+csur92 <- subset(data,ind92==1 & dip91!="." & dip91>0)     
 ```
 Now that only observations only from 1992 are chosen via indicator ind==92, relevant variables can be are created.<br>
 In the code chunk below the log of size of sales (expressed in thousand euros) variable **lsize** is created. This will serve as proxy for size of firm.
 ```{r, cache=TRUE}
-csur92$lsize <- ifelse(csur92$sales<= 0 , NA, log(csur92$sales)) 
+csur92$lsize <- ifelse(csur92$sales<= 0 , NA, log(csur92$sales))    
 ```
 In the next chunk of code, dummies establishing baseline definition of rationing, or financial constraint, are constructed out of *d17_1*, *d17_2*, *d17_3* or *d17_4* variables.These variables are coded answers for questions of whether or not a firm encountered difficulties in financing their last investment project due to insufficient cash flow, lack of collateral, insufficient long-term finance or high cost of debt respectively. In this case multiple answers were allowed with an intensity ranking from 1 to 3, missing values being coded as equal to 9.<br>
 As indicated in p.427 of the original article, "In the 1992 survey, we define a firm as constrained if at least one question of the first four causes was given the highest importance." Hence the new rationing variable **razd** takes a value of 1, indicating a financially constrained firm, if above conditions are met, NA if observations for all four original variables are equal to 9, or missing, 0 in any other case.<br>
 A duplicated of **razd** variable therefore created is stored under the label **raz92d**.
 ```{r, cache=TRUE}
 csur92$razd <- as.factor(ifelse(csur92$d17_1==3|csur92$d17_2==3|csur92$d17_3==3|csur92$d17_4==3,1,ifelse(csur92$d17_1==9 &csur92$d17_2==9 & csur92$d17_3==9 & csur92$d17_4==9,NA,0)))
-csur92$raz92d <- csur92$razd
+csur92$raz92d <- csur92$razd    
 ```
 In the next chunk of code, Merger and Acquisition indicators are created. A new variable **duacq** is coded as being equal to 1 if the firm was party to mergers or acquisition, and takes 0 in cases of both missing value or if the firm not being party to m&a. This new variable is a version of ACQUI variable in original data set.<br>
 A new variable **dusco** is created as being equal to 1 if the firm was created through a spin off, and takes 0 in cases of both missing value or if the firm was not created through a spin off.This new variable is a version of SCORPO variable in original data set.<br>
 ```{r, cache = TRUE}
-csur92$duacq <- ifelse(is.na(csur92$acqui),0,ifelse(csur92$acqui==1,1,0))
+csur92$duacq <- ifelse(is.na(csur92$acqui),0,ifelse(csur92$acqui==1,1,0))   
 csur92$dusco<- ifelse(is.na(csur92$scorpo),0,ifelse(csur92$scorpo==1,1,0))
 ```
 In the next code chunk, sectoral dummies according to "Keith Pavitt" classification are given. In the original data the information is coded in PAV variable which takes values of 1 to 4 if firm belongs to traditional sector, or is scale intensive, or is a specialized supplier, or a high technology respectively. However in the present data set, this variable is separated into four, each specifically answering to one question. **dupav1** answers if firm is in traditional sector taking value 1 or not taking value 0. **dupav2** answers if firm is scale intensive taking value 1 or not taking value 0. **dupav3** answers if firm is a specialized supplier taking value 1 or not taking value 0. **dupav4** answers if firm is in high-technology taking value 1 or not taking value 0.
 ```{r, cache = TRUE}
 csur92$dupav1 <- ifelse(csur92$pav == 1, 1, 0)
-csur92$dupav2 <- ifelse(csur92$pav == 2, 1, 0)
+csur92$dupav2 <- ifelse(csur92$pav == 2, 1, 0)   
 csur92$dupav3 <- ifelse(csur92$pav == 3, 1, 0)
 csur92$dupav4 <- ifelse(csur92$pav == 4, 1, 0) 
 ```
@@ -117,7 +115,7 @@ In the next code chunk, balance sheet variables are defined. Variable **roa** re
 Variable **quoimm** represents the share of tangible assets, coded by variable IMTE in the original data set, over total assets defined as a sum between current and net fixed assets. Moreover, a new **lsales** variables which represents log of sales number is introduced. All balance sheet variables are expressed in thousands euros.
 ```{r, cache = TRUE}
 csur92$roa <- (csur92$util/(csur92$aco+csur92$aim))
-csur92$ofut <- (csur92$of/(csur92$of+csur92$utiln))
+csur92$ofut <- (csur92$of/(csur92$of+csur92$utiln))   
 csur92$quoimm <- (csur92$imte/(csur92$aco+csur92$aim))
 csur92$lsales <- ifelse(csur92$sales<= 0 , NA, log(csur92$sales))
 ```
@@ -136,7 +134,7 @@ csur92$pofut <- ifelse(csur92$anno=="1989-01-01",common[1,1],ifelse(csur92$anno=
 common <- data.frame(tapply(csur92$quoimm, csur92$anno, quantile, probs=.25, na.rm = TRUE))
 b <- data.frame(rep(NA, times = (12 - nrow(common))))
 names(common)[1] <- "common"
-names(b)[1] <- "common"
+names(b)[1] <- "common"     
 common <- data.frame(rbind(common, b))
 csur92$duofut <- as.factor(ifelse(round(csur92$ofut, digits = 4) > round(csur92$pofut, digits = 4) & round(csur92$ofut, digits = 4) != ".",1,ifelse(round(csur92$ofut, digits = 4)==".",".",0)))
 
@@ -147,7 +145,7 @@ csur92[grep("acqui",colnames(csur92))]=NULL
 csur92[grep("scorpo",colnames(csur92))]=NULL
 csur92[grep("^pav$",colnames(csur92))]=NULL
 csur92 <- csur92[order(csur92$identif),]
-a <- csur92[8184, 58]
+a <- csur92[8184, 58]     
 ```
 It is to be noticed here that generating quantiles with R and STATA gives slightly different values for **pquoimm** & **pofut**. The magnitude in differences is about 10<sup>-4</sup>. However this means that for one observation in the csur92 data set, **identif**=11636 for **anno**=1991 the resulting **duofut** variable has a value of `r a` in R , while this value is 0 for STATA.<br>
 Observe that in generating **duofut** & **dimm** variables, variables used to compute them out from were rounded to 4 digits. It is the number of digits that offers the minimum number of differences in csur92 between data generated with R and STATA.<br><br>
@@ -157,14 +155,14 @@ The description of the methods of creation of the different variables described 
 Here only observations current to 1995 (ranging 1991-1994) for firms in data set are selected and saved in csur95 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1991-1994) in order to be able to calculate labor growth.<br>
 ```{r, cache = TRUE}
 csur95 <- subset(data,ind95==1 & dip94!="." & dip94>0)
-#Size as Proxied by Total Sales;
+#Size as Proxied by Total Sales;     
 csur95$lsize <- ifelse(csur95$sales<= 0 , NA, log(csur95$sales))
 ```
 The baseline definition of financial constraints in the 1995 survey is defined somehow different compared to 1992 survey. The construction of **razd** variable indicating financial constraint depends on variables *NONOTTEN* and *AVREBACC* in original data set. These two variables code yes or no answers (1 being yes and 0 No) to questions "Did in 1994 the firm wanted more credit, asked for it and was turned down by the bank ?" and "Was in 1994 the firm ready to pay higher loan rates or pledge more collateral to obtain more credit ?" respectively.<br>
 If the first question was answered with a yes, then the firm is considered as financially constrained and variable **razd** will be equal to 1. If answers to both questions were missing then data on financial constraint is considered as missing. In any other case, firm is considered financially not constrained, giving a value of NA and 0 respectively.<br>
 A copy of **razd** variable is made in variable **raz95d**.
 ```{r, cache = TRUE}
-#Dummy Rationing Baseline def.;
+#Dummy Rationing Baseline def.;     
 csur95$razd <- ifelse(csur95$nonotten == "."|is.na(csur95$nonotten) == TRUE, 0, ifelse(csur95$nonotten==1, 1, 0))
 csur95$raz95d <- csur95$razd
 a <- ifelse(is.na(csur95$nonotten)==TRUE, 0, ifelse(csur95$nonotten == 0, 20, 10))
@@ -174,13 +172,13 @@ csur95$razd <- ifelse(c==0, NA, ifelse(c==10|c==11|c==12, 1, 0))
 ```
 The M&A dummies are basically defined exactly as in above section.
 ```{r, cache = TRUE}
-#Dummies M&A's;
+#Dummies M&A's;    
 csur95$duacq <- ifelse(is.na(csur95$acqui),0,ifelse(csur95$acqui==1,1,0))
 csur95$dusco<- ifelse(is.na(csur95$scorpo),0,ifelse(csur95$scorpo==1,1,0))
 ```
 Here a new variable **dugr** is introduced based on *isgru* variable of original data set. The latter has a value of 1, if the firm in question is part of an industrial group, and 0 if not with possible NA values. However, **dugr** is constructed as equal to 1 if the firm is part of an industrial group, and 0 in any other situations.
 ```{r, cache = TRUE}
-#Dummy Industrial Group
+#Dummy Industrial Group   
 csur95$durg <- ifelse(is.na(csur95$isgru),0,ifelse(csur95$isgru==1,1,0))
 ```
 The following steps are defined exactly as in above section.
@@ -190,7 +188,7 @@ csur95$dupav1 <- ifelse(csur95$pav==1,1,0)
 csur95$dupav2 <- ifelse(csur95$pav==2,1,0)
 csur95$dupav3 <- ifelse(csur95$pav==3,1,0)
 csur95$dupav4 <- ifelse(csur95$pav==4,1,0)
-
+  
 #Defining Balance-Sheet Variables
 #Return on Assets
 csur95$roa <- csur95$util/(csur95$aco + csur95$aim)
@@ -228,7 +226,7 @@ csur95[grep("acqui",colnames(csur95))] <- NULL
 csur95[grep("scorpo",colnames(csur95))] <- NULL
 csur95[grep("isgru",colnames(csur95))] <- NULL
 csur95[grep("^pav$",colnames(csur95))] <- NULL
-
+  
 csur95 <- csur95[order(csur95$identif),]
 ```
 It is to be noticed here that generating quantiles with R and STATA gives slightly different values for **pquoimm** & **pofut**. The magnitude in differences is about 10<sup>-5</sup>. However this means that for one observation in the csur92 data set, **identif**=1839 for **anno**=1992 the resulting **duofut** variable has a value of 1 in R , while this value is 0 for STATA.<br>
@@ -238,7 +236,7 @@ Observe that in generating **duofut** & **dimm** variables, variables used to co
 The creation of csur98 data set departs in three majors ways and in one major way from the construction of csur92 data set. First a minor adjustment in the selection of observation only contemporary to 1998.Here only observations current to 1998 (ranging 1995-1997) for firms in data set are selected and saved in csur98 data set. Additionally these firms should have a correct observation for number of employees the 3 years before (1995-1997) in order to be able to calculate labor growth. But authors seem to have added a condition that the age of the firm in 98 is not negative.<br>
 Additionally a new variable **isgru** is introduced in the exact same manner as described for data set csur98.<br>
 ```{r, cache = TRUE}
-csur98 <- subset(data,ind98 == 1 & dip97 != "." & dip97 > 0 & (eta98 >= 0 | is.na(eta98)))
+csur98 <- subset(data,ind98 == 1 & dip97 != "." & dip97 > 0 & (eta98 >= 0 | is.na(eta98)))   
 ```
 The baseline definition of financial constraints in the 1998 survey is defined somehow differently compared to both 1992 and 1995 surveys. The construction of financial constraint indicator **razd** is based on variables *desi*, *chie* and *paga* of the original data set. These variables represent code a yes or no question (1 being yes and 2 being no) to questions, "In the previous year the firm wanted more credit at the prevailing market conditions.", "In the previous year the firm asked for more credit but was turned down by the bank." and "In the previous year the firm would have accepted to pay a slightly higher loan rate." respectively.<br>
 If answers to first question and second question both were positive, then the firm is considered as financially constrained and **razd** variable will be equal to 1, else if answers to all three questions were missing the firm is considered to be have no information on financial constraint having an NA value for **razd**, for all other situation the new variable will have a value of zero indicating no financial constraint of firm involved. A copy of this new variable is stored in variable **razd98d**.
@@ -247,7 +245,7 @@ If answers to first question and second question both were positive, then the fi
 z <- ifelse(is.na(csur98$desi), 3, ifelse(csur98$desi == 1, 1, 2))
 y <- ifelse(is.na(csur98$chie), 30, ifelse(csur98$chie == 1, 10, 20))
 x <- ifelse(is.na(csur98$paga), 200, 100)
-w <- z + y + x
+w <- z + y + x    
 
 csur98$razd <- ifelse(w == 233, NA, ifelse(w == 111|w == 211, 1, 0))
 
@@ -327,7 +325,7 @@ Here only observations current to 2001 (ranging 1998-200) for firms in data set 
 As for the rest, the methods of creating the new variables are done in exactly the same manner as for <u>csur98</u>. Except that copies of new variable **razd** and **desi** for <u>csur01</u> data set are stored in variables **raz01d** and **desi01**.
 ```{r, cache = TRUE}
 csur01 <- subset(data,ind01 == 1 & dip00 != "." & dip00 > 0 & (eta01 >= 0 | is.na(eta01)))
-
+    
 #Dummy Rationing Baseline def.
 z <- ifelse(is.na(csur01$desi), 3, ifelse(csur01$desi == 1, 1, 2))
 y <- ifelse(is.na(csur01$chie), 30, ifelse(csur01$chie == 1, 10, 20))
@@ -414,15 +412,18 @@ colnames(csuro92) <- c("identif", "eta92", "raz92d")
 ```
 A new data set <u>csuro95</u> is created out of <u>csur95</u> data set, by taking only variables **raz95d** as defined in section A2, variables **eta95** and **identif**, present in original data set and representing the age of the firm in 1995 and a unique firm identifier respectively but exclusively for observations made on 1994.
 ```{r, cache = TRUE}
-suppressMessages(library(lubridate))
+suppressMessages(library(lubridate))   
 csuro95 <- subset(csur95, as.numeric(year(csur95$anno)) == 1994)
 csuro95 <- data.frame(csuro95$identif, csuro95$eta95, csuro95$raz95d)
 colnames(csuro95) <- c("identif", "eta95", "raz95d")
+
 merge1 <- merge(csuro92, csuro95, by=c("identif"), all=TRUE)
+
 ind1 <- ifelse(is.na(merge1$eta92) & is.na(merge1$raz92d), 1, 2)
 ind2 <- ifelse(is.na(merge1$eta95) & is.na(merge1$raz95d), 10, 20)
 ind3 <- ind1 + ind2
 merge1$merge <- as.integer(ifelse(ind3 == 12, 1, ifelse(ind3 == 21, 2, ifelse(ind3 == 11, NA, 3))))
+
 merge1 <- merge1[order(merge1$identif), ]
 ```
 In the end, the two new data sets <u>csuro92</u> and <u>csuro95</u> are merged by **identif**, filling all very probable empty observations by an NA. The obtained data set is ordered by identif, and named <u>merge1</u>.<br>
@@ -432,6 +433,7 @@ Similarly, a firm present in both 95 and 92 survey whose age in 92 is there, but
 #uses age from one survey to compute age.survey
 merge1$eta92c <- ifelse((is.na(merge1$eta92)|merge1$eta92<0) & (!is.na(merge1$eta95) ) & merge1$merge == 3, merge1$eta95 - 3, merge1$eta92)
 merge1$eta95c <- ifelse((is.na(merge1$eta95)|merge1$eta95<0) & (!is.na(merge1$eta92) ) & merge1$merge == 3, merge1$eta92 + 3, merge1$eta95)    
+
 merge1[grep("^eta92$",colnames(merge1))] <- NULL
 merge1[grep("^eta95$",colnames(merge1))] <- NULL
 merge1[grep("^merge$",colnames(merge1))] <- NULL
@@ -447,7 +449,7 @@ merge1$eta95c <- ifelse(is.na(merge1$deta), merge1$eta95c,ifelse(merge1$deta == 
 In the last code chunk of this part, a dummy variable named **persist** is created as an indicator of persistently constrained firms. If the firm was financially constrained in 92 (**raz92d** equals 1) and in 95 (**raz95d** equals 1) then the firm is considered persistently financially constrained. Then **perist** equals 1, or 0 in any other case. Only variables **indentif**, **eta92c**, **eta95c** and **persist** are kept in the data set that is also ordered by **identif** variable.<br>
 The end data set is then stored under the name <u>temp9295</u>.
 ```{r, cache = TRUE}
-merge1$russia <- as.numeric(merge1$raz92d) + as.numeric(merge1$raz95d)
+merge1$russia <- as.numeric(as.character(merge1$raz92d)) + as.numeric(as.character(merge1$raz95d))
 merge1$persist <- as.factor(ifelse( is.na(merge1$russia), 0, ifelse(merge1$russia == 2, 1, 0)))
 temp9295 <- data.frame(merge1$identif, merge1$eta92c, merge1$eta95c, merge1$persist)
 colnames(temp9295) <- c("identif", "eta92c", "eta95c", "persist")
