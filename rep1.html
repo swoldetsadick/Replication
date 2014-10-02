@@ -593,19 +593,70 @@ merge1$eta95c &lt;- ifelse(is.na(merge1$deta), merge1$eta95c,ifelse(merge1$deta 
 merge1$persist &lt;- as.factor(ifelse( is.na(merge1$russia), 0, ifelse(merge1$russia == 2, 1, 0)))
 temp9295 &lt;- data.frame(merge1$identif, merge1$eta92c, merge1$eta95c, merge1$persist)
 colnames(temp9295) &lt;- c(&quot;identif&quot;, &quot;eta92c&quot;, &quot;eta95c&quot;, &quot;persist&quot;)
-temp9295 &lt;- temp9295 [order(temp9295$identif),]  
-summary(temp9295)</code></pre>
-<pre><code>##     identif         eta92c          eta95c      persist 
-##  13     :   1   Min.   : -2.0   Min.   :  1.0   0:6177  
-##  14     :   1   1st Qu.: 10.0   1st Qu.: 13.0   1:  14  
-##  15     :   1   Median : 17.0   Median : 19.0           
-##  19     :   1   Mean   : 23.1   Mean   : 25.2           
-##  20     :   1   3rd Qu.: 30.0   3rd Qu.: 32.0           
-##  21     :   1   Max.   :149.0   Max.   :135.0           
-##  (Other):6185   NA's   :2296    NA's   :2412</code></pre>
+temp9295 &lt;- temp9295 [order(temp9295$identif),]</code></pre>
 In generating data set <u>temp9295</u> no differences were observed between data set generated with STATA and one generated with R.
 <h6 align="left">
 2 - 1998 - 2001 survey data set.
+</h6>
+<p>Two new data sets <u>csuro98</u> and <u>csuro01</u> are created out of <u>csur98</u> and <u>csur01</u> data sets respectively, by taking only variables <strong>raz92d</strong> as defined in section A1, variables <strong>eta92</strong> and <strong>identif</strong>, present in original data set and representing the age of the firm in 1992 and a unique firm identifier respectively but exclusively for observations made on 1991. Then data sets are order by <strong>identif</strong> variable and renamed <u>temp98</u> and <u>temp01</u> respectively.<br> In the end, the two new data sets are merged by <strong>identif</strong>, filling all very probable empty observations by an NA. The obtained data set is ordered by identif, and named <u>merge2</u>.<br></p>
+<pre class="r"><code>suppressMessages(library(lubridate))
+
+csur98 &lt;- read.table(&quot;~/Downloads/Desktop/Replication/erase/erasecsur98.txt&quot;, header=TRUE, quote=&quot;\&quot;&quot;)
+csuro98 &lt;- subset(csur98, year(csur98$anno) == 1997)
+
+temp98 &lt;- csuro98[,c(31, 35, 43, 45, 60)]
+temp98 &lt;- temp98[order(temp98$identif),]
+
+csur01 &lt;- read.table(&quot;~/Downloads/Desktop/Replication/erase/erasecsur01.txt&quot;, header=TRUE, quote=&quot;\&quot;&quot;)
+csuro01 &lt;- subset(csur01, year(csur01$anno) == 2000)
+
+temp01 &lt;- csuro01[,c(40, 41, 43, 45, 60)]
+temp01 &lt;- temp01[order(temp01$identif),]
+
+merge2 &lt;- merge(temp98, temp01, by = c(&quot;identif&quot;), all = TRUE)</code></pre>
+<p>In the next code chunk age information from Cerved database in 98 is set to equal age in 2001 in same database minus 3. Then a new variable <strong>diff</strong> is created as the difference between age in 2001 and 1998 in the survey. for firms present in Cerved database.<br> First, wrong or missing age information according to survey database is replaced by correct age information from Cerved database if available in the latter database. <br> Then the missing age data of a firm present in both surveys, but whose age in one survey is missing is computed as follows. A firm present in both 98 and 01 survey and whose age in 01 is there, but for whom age in 98 is missing or illogical, age in 98 is set equal to age in 01 - 3.<br> Similarly, a firm present in both 98 and 01 survey whose age in 98 is there, but for whom age in 01 is missing or illogical, age in 01 is set equal to age in 98 + 3. These new ages are stored in variables called <strong>eta92c</strong> and <strong>eta95c</strong>.<br></p>
+<pre class="r"><code>merge2$eta98n &lt;- merge2$eta01n - 3
+merge2$diff &lt;- merge2$eta01 - merge2$eta98
+
+merge2$diff &lt;- ifelse(is.na(merge2$diff), 1000, merge2$diff)
+merge2$eta01 &lt;- ifelse(is.na(merge2$eta01), 1000, merge2$eta01)
+merge2$eta01n &lt;- ifelse(is.na(merge2$eta01n), -1000, merge2$eta01n)
+merge2$eta98 &lt;- ifelse(is.na(merge2$eta98), 1000, merge2$eta98)
+merge2$eta98n &lt;- ifelse(is.na(merge2$eta98n), -1000, merge2$eta98n)
+
+merge2$eta98 &lt;- ifelse(merge2$diff != 3 &amp; merge2$eta01 == merge2$eta01n &amp; merge2$eta98n != -1000 &amp; merge2$eta98n &gt;= 0, merge2$eta98n, merge2$eta98)
+merge2$eta01 &lt;- ifelse(merge2$diff != 3 &amp; merge2$eta98 == merge2$eta98n &amp; merge2$eta01n != -1000 &amp; merge2$eta01n &gt;= 0, merge2$eta01n, merge2$eta01)
+
+merge2$eta98 &lt;- ifelse(merge2$eta98 == 1000 &amp; merge2$eta01 != 1000, merge2$eta01 - 3, merge2$eta98)
+merge2$eta98 &lt;- ifelse(merge2$eta98 &lt; 0 &amp; merge2$eta01 != 1000, merge2$eta01 - 3, merge2$eta98)
+
+merge2$eta01 &lt;- ifelse((merge2$eta01 == 1000 | merge2$eta01 &lt; 0) &amp; merge2$eta98 != 1000, merge2$eta98 + 3, merge2$eta01)
+
+merge2$eta98 &lt;- ifelse(merge2$eta98 == 1000, NA, merge2$eta98)
+merge2$eta01 &lt;- ifelse(merge2$eta01 == 1000, NA, merge2$eta01)</code></pre>
+<p>What is done in the next code chunk is to create a <strong>deta</strong> variable that stores the differences in age between 1998 and 2001 as proxied by <strong>eta98</strong> and <strong>eta01</strong> as seen above. Then observations with large error in age field, or for deta superior to 5 or inferior to 1, observation is deleted. Next small differences in age field, for deta = 2 and = 4 the difference is squared to 3, by replacing value of <strong>eta01</strong> by value of <strong>eta92c</strong> plus 3.</p>
+<pre class="r"><code>merge2$deta &lt;- merge2$eta01 - merge2$eta98
+merge2 &lt;- subset(merge2,(merge2$deta &gt; 1| is.na(merge2$deta)) &amp; (merge2$deta &lt; 5| is.na(merge2$deta)))
+
+merge2$deta&lt;- ifelse(is.na(merge2$deta), 1000, merge2$deta)
+merge2$eta01 &lt;- ifelse(merge2$deta==2|merge2$deta==4, merge2$eta98 + 3, merge2$eta01)</code></pre>
+<p>In the last code chunk of this part, two dummy variable named <strong>persist</strong> and <strong>perdesi</strong> are created as an indicators of persistently constrained firms and firms in persistently desiring more credit. If the firm was financially constrained in 92 (<strong>raz92d</strong> equals 1) and in 95 (<strong>raz95d</strong> equals 1) then the firm is considered persistently financially constrained.Then <strong>perist</strong> equals 1, or 0 in any other case. If the firm desired more credit in 98 (<strong>desi98</strong> equals 1) and in 01 (<strong>desi01</strong> equals 1) then the firm is considered persistently in need of more credit.Then <strong>perdesi</strong> equals 1, or 0 in any other case.<br> Age indicating variables <strong>eta01</strong> and <strong>eta98</strong> are renamed <strong>eta01c</strong> and <strong>eta98c</strong> respectively.<br> Only variables <strong>indentif</strong>, <strong>eta92c</strong>, <strong>eta95c</strong> and <strong>persist</strong> are kept in the data set that is also ordered by <strong>identif</strong> variable.<br> The end data set is then stored under the name <u>temp9801</u>.</p>
+<pre class="r"><code>a &lt;- ifelse(is.na(merge2$raz98d), 3, ifelse(merge2$raz98d == 1, 1, 2))
+b &lt;- ifelse(is.na(merge2$raz01d), 3, ifelse(merge2$raz01d == 1, 1, 2))
+c &lt;- a + b
+merge2$persist &lt;- ifelse(c == 2, 1, 0)
+
+d &lt;- ifelse(is.na(merge2$desi98), 3, ifelse(merge2$desi98 == 1, 1, 2))
+e &lt;- ifelse(is.na(merge2$desi01), 3, ifelse(merge2$desi01 == 1, 1, 2))
+f &lt;- d + e
+merge2$perdesi &lt;- ifelse(f == 2, 1, 0)
+temp9801 &lt;- merge2[,c(1, 2, 6, 12, 13)]
+names(temp9801)[2]=&quot;eta98c&quot;
+names(temp9801)[3]=&quot;eta01c&quot;
+
+temp9801 &lt;- temp9801[order(temp9801$identif),]</code></pre>
+<h6 align="left">
+3 - 1992 - 1995 main data set corrections
 </h6>
 <br>
 <h6>

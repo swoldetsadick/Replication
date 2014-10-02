@@ -457,5 +457,78 @@ temp9295 <- temp9295 [order(temp9295$identif),]
 ```
 In generating data set <u>temp9295</u> no differences were observed between data set generated with STATA and one generated with R.
 <h6 align="left">2 - 1998 - 2001 survey data set.</h6>
+Two new data sets <u>csuro98</u> and <u>csuro01</u> are created out of <u>csur98</u> and <u>csur01</u> data sets respectively, by taking only variables **raz92d** as defined in section A1, variables **eta92** and **identif**, present in original data set and representing the age of the firm in 1992 and a unique firm identifier respectively but exclusively for observations made on 1991. Then data sets are order by **identif** variable and renamed <u>temp98</u> and <u>temp01</u> respectively.<br>
+In the end, the two new data sets are merged by **identif**, filling all very probable empty observations by an NA. The obtained data set is ordered by identif, and named <u>merge2</u>.<br>
+```{r, cache = TRUE}
+suppressMessages(library(lubridate))
+
+csur98 <- read.table("~/Downloads/Desktop/Replication/erase/erasecsur98.txt", header=TRUE, quote="\"")
+csuro98 <- subset(csur98, year(csur98$anno) == 1997)
+
+temp98 <- csuro98[,c(31, 35, 43, 45, 60)]
+temp98 <- temp98[order(temp98$identif),]
+
+csur01 <- read.table("~/Downloads/Desktop/Replication/erase/erasecsur01.txt", header=TRUE, quote="\"")
+csuro01 <- subset(csur01, year(csur01$anno) == 2000)
+
+temp01 <- csuro01[,c(40, 41, 43, 45, 60)]
+temp01 <- temp01[order(temp01$identif),]
+
+merge2 <- merge(temp98, temp01, by = c("identif"), all = TRUE)
+```
+In the next code chunk age information from Cerved database in 98 is set to equal age in 2001 in same database minus 3. Then a new variable **diff** is created as the difference between age in 2001 and 1998 in the survey. for firms present in Cerved database.<br>
+First, wrong or missing age information according to survey database is replaced by correct age information from Cerved database if available in the latter database. <br>
+Then the missing age data of a firm present in both surveys, but whose age in one survey is missing is computed as follows. A firm present in both 98 and 01 survey and whose age in 01 is there, but for whom age in 98 is missing or illogical, age in 98 is set equal to age in 01 - 3.<br>
+Similarly, a firm present in both 98 and 01 survey whose age in 98 is there, but for whom age in 01 is missing or illogical, age in 01 is set equal to age in 98 + 3. These new ages are stored in variables called **eta92c** and **eta95c**.<br>
+```{r, cache = TRUE}
+merge2$eta98n <- merge2$eta01n - 3
+merge2$diff <- merge2$eta01 - merge2$eta98
+
+merge2$diff <- ifelse(is.na(merge2$diff), 1000, merge2$diff)
+merge2$eta01 <- ifelse(is.na(merge2$eta01), 1000, merge2$eta01)
+merge2$eta01n <- ifelse(is.na(merge2$eta01n), -1000, merge2$eta01n)
+merge2$eta98 <- ifelse(is.na(merge2$eta98), 1000, merge2$eta98)
+merge2$eta98n <- ifelse(is.na(merge2$eta98n), -1000, merge2$eta98n)
+
+merge2$eta98 <- ifelse(merge2$diff != 3 & merge2$eta01 == merge2$eta01n & merge2$eta98n != -1000 & merge2$eta98n >= 0, merge2$eta98n, merge2$eta98)
+merge2$eta01 <- ifelse(merge2$diff != 3 & merge2$eta98 == merge2$eta98n & merge2$eta01n != -1000 & merge2$eta01n >= 0, merge2$eta01n, merge2$eta01)
+
+merge2$eta98 <- ifelse(merge2$eta98 == 1000 & merge2$eta01 != 1000, merge2$eta01 - 3, merge2$eta98)
+merge2$eta98 <- ifelse(merge2$eta98 < 0 & merge2$eta01 != 1000, merge2$eta01 - 3, merge2$eta98)
+
+merge2$eta01 <- ifelse((merge2$eta01 == 1000 | merge2$eta01 < 0) & merge2$eta98 != 1000, merge2$eta98 + 3, merge2$eta01)
+
+merge2$eta98 <- ifelse(merge2$eta98 == 1000, NA, merge2$eta98)
+merge2$eta01 <- ifelse(merge2$eta01 == 1000, NA, merge2$eta01)
+```
+What is done in the next code chunk is to create a **deta** variable that stores the differences in age between 1998 and 2001 as proxied by **eta98** and **eta01** as seen above. Then observations with large error in age field, or for deta superior to 5 or inferior to 1, observation is deleted. Next small differences in age field, for deta = 2 and = 4 the difference is squared to 3, by replacing value of **eta01** by value of **eta92c** plus 3.
+```{r, cache = TRUE}
+merge2$deta <- merge2$eta01 - merge2$eta98
+merge2 <- subset(merge2,(merge2$deta > 1| is.na(merge2$deta)) & (merge2$deta < 5| is.na(merge2$deta)))
+
+merge2$deta<- ifelse(is.na(merge2$deta), 1000, merge2$deta)
+merge2$eta01 <- ifelse(merge2$deta==2|merge2$deta==4, merge2$eta98 + 3, merge2$eta01)
+```
+In the last code chunk of this part, two dummy variable named **persist** and **perdesi** are created as an indicators of persistently constrained firms and firms in persistently desiring more credit. If the firm was financially constrained in 92 (**raz92d** equals 1) and in 95 (**raz95d** equals 1) then the firm is considered persistently financially constrained.Then **perist** equals 1, or 0 in any other case. If the firm desired more credit  in 98 (**desi98** equals 1) and in 01 (**desi01** equals 1) then the firm is considered persistently in need of more credit.Then **perdesi** equals 1, or 0 in any other case.<br>
+Age indicating variables **eta01** and **eta98** are renamed **eta01c** and **eta98c** respectively.<br>
+Only variables **indentif**, **eta92c**, **eta95c** and **persist** are kept in the data set that is also ordered by **identif** variable.<br>
+The end data set is then stored under the name <u>temp9801</u>.
+```{r, cache = TRUE}
+a <- ifelse(is.na(merge2$raz98d), 3, ifelse(merge2$raz98d == 1, 1, 2))
+b <- ifelse(is.na(merge2$raz01d), 3, ifelse(merge2$raz01d == 1, 1, 2))
+c <- a + b
+merge2$persist <- ifelse(c == 2, 1, 0)
+
+d <- ifelse(is.na(merge2$desi98), 3, ifelse(merge2$desi98 == 1, 1, 2))
+e <- ifelse(is.na(merge2$desi01), 3, ifelse(merge2$desi01 == 1, 1, 2))
+f <- d + e
+merge2$perdesi <- ifelse(f == 2, 1, 0)
+temp9801 <- merge2[,c(1, 2, 6, 12, 13)]
+names(temp9801)[2]="eta98c"
+names(temp9801)[3]="eta01c"
+
+temp9801 <- temp9801[order(temp9801$identif),]
+```
+<h6 align="left">3 - 1992 - 1995 main data set corrections</h6>
 <br>
 <h6><sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.</h6>
