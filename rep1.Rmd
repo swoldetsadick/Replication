@@ -529,6 +529,68 @@ names(temp9801)[3]="eta01c"
 
 temp9801 <- temp9801[order(temp9801$identif),]
 ```
+In generating data set <u>temp9801</u> no differences were observed between data set generated with STATA and one generated with R.
 <h6 align="left">3 - 1992 - 1995 main data set corrections</h6>
+The goal in this part of data manipulation is to correct the age fields in the main data sets using the temporary data sets generated in the two previous sections. In this part, data set <u>temp9801</u> is used to correct age fields in main data sets <u>csur92</u> and <u>csur95</u>.<br>
+In the next section of code, data set <u>temp9801</u> and <u>csur92</u> are merged by **identif** variable. Next a merge indicator variable is added to data set thus obtained. Knowing that variable **pofut** has no missing values in <u>csur92</u> and **persist** in <u>temp9801</u> data set, we use this information to code **merge** variable. If information in a specific row comes only from <u>csur92</u> data set then **pofut** will have no missing value for this row while **persist** will be. If information in a specific row comes only from <u>temp9801</u> the inverse is true. In the first case, **merge** variable will have value of 1 and in the second case a value of 2. But if information in specific row comes from both data sets, then **merge** variable will have a value of 3.<br>
+Observe that only rows having information from both data sets are kept in the end. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 1992. The value for variable **persist** indicating persistently constrained firms is set to equal to zero for all observations as 92 is the first year considered here.<br>
+In the end, variables **merge**, **eta92** and **eta95** are kicked out of the data set, and also observations having negative age value for 1992. Data is ordered by **identif** and by **anno** then saved under the name <u>csur92</u>.
+```{r, cache = TRUE}
+# Merging csur92 & temp9295 data sets
+merge3 <- merge(csur92, temp9295, by=c("identif"))
+
+#Creating merge indicator
+a <- ifelse(is.na(merge3$pofut), 0, 1)
+b <- ifelse(is.na(merge3$persist), 10, 20)
+c <- a + b
+merge3$merge <- ifelse(c == 11, 1, ifelse(c == 20, 2, 3))
+
+#subsetting rows with info from both data sets
+merge3 <- subset(merge3, merge3$merge == 3)
+
+#correcting age fields
+merge3$eta92 <- merge3$eta92c
+#correcting persistance of financial constraints
+merge3$persist <- rep(0, times = nrow(merge3))
+
+#Kicking out merge, eta92c & eta95c & observation with illogical age fields
+merge3[grep("^merge$",colnames(merge3))] <- NULL
+merge3[grep("^eta92c$",colnames(merge3))] <- NULL
+merge3[grep("^eta95c$",colnames(merge3))] <- NULL
+merge3 <- subset(merge3, (is.na(merge3$eta92)|merge3$eta92 >= 0))
+
+# Ordering data & renaming csur92
+csur92 <- merge3 [order(merge3$identif, merge3$anno),]
+```
+The same treatment is given to <u>csur95</u> data set. Except that information regarding persistence of financial constraint for firms, or **persist** variable, is not reset to zero but keep the original values that they took in <u>temp9295</u> data set. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 1995. And at the end it is observations with illogical for age in 1995 that are kicked out of the data set.<br>
+Resulting data set is saved uder <u>csur95</u>.
+```{r, cache = TRUE}
+# Merging csur92 & temp9295 data sets
+merge4 <- merge(csur95, temp9295, by=c("identif"))
+
+#Creating merge indicator
+a <- ifelse(is.na(merge4$pofut), 0, 1)
+b <- ifelse(is.na(merge4$persist), 10, 20)
+c <- a + b
+merge4$merge <- ifelse(c == 11, 1, ifelse(c == 20, 2, 3))
+
+#subsetting rows with info from both data sets
+merge4 <- subset(merge4, merge4$merge == 3)
+
+#correcting age fields
+merge4$eta95 <- merge4$eta95c
+
+merge4[grep("^merge$",colnames(merge4))] <- NULL
+merge4[grep("^eta92c$",colnames(merge4))] <- NULL
+merge4[grep("^eta95c$",colnames(merge4))] <- NULL
+
+#Kicking out merge, eta92c & eta95c & observation with illogical age fields
+merge4 <- subset(merge4, (is.na(merge4$eta95)|merge4$eta95 >= 0))
+
+# Ordering data & renaming csur95
+csur95 <- merge4 [order(merge4$identif, merge4$anno),]
+
+```
+
 <br>
 <h6><sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.</h6>
