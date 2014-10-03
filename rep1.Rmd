@@ -563,7 +563,7 @@ merge3 <- subset(merge3, (is.na(merge3$eta92)|merge3$eta92 >= 0))
 csur92 <- merge3 [order(merge3$identif, merge3$anno),]
 ```
 The same treatment is given to <u>csur95</u> data set. Except that information regarding persistence of financial constraint for firms, or **persist** variable, is not reset to zero but keep the original values that they took in <u>temp9295</u> data set. Then age computed in <u>temp9295</u> replaces age fields in main data set only for 1995. And at the end it is observations with illogical for age in 1995 that are kicked out of the data set.<br>
-Resulting data set is saved uder <u>csur95</u>.
+Resulting data set is saved under <u>csur95</u>.
 ```{r, cache = TRUE}
 # Merging csur92 & temp9295 data sets
 merge4 <- merge(csur95, temp9295, by=c("identif"))
@@ -615,10 +615,9 @@ merge5 <- subset(merge5, merge5$merge == 3)
 merge5[grep("^merge$",colnames(merge5))] <- NULL
 
 csur98 <- merge5 [order(merge5$identif, merge5$anno),]
-summary(csur98)
 ```
 The same treatment is given to <u>csur01</u> data set. Except that information regarding persistence of financial constraint for firms, or **persist** variable and persistence of desire of more credit from firms **perdesi**, are not reset to zero but keep their original values that they took in <u>temp9801</u> data set. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 2001. <br>
-Resulting data set is saved uder <u>csur01</u>.
+Resulting data set is saved under <u>csur01</u>.
 ```{r, cache = TRUE}
 merge6 <- merge(csur01, temp9801, by=c("identif"))
 a <- ifelse(is.na(merge6$pofut), 0, 1)
@@ -635,8 +634,8 @@ merge6 <- subset(merge6, merge6$merge == 3)
 merge6[grep("^merge$",colnames(merge6))] <- NULL
 
 csur01 <- merge6 [order(merge6$identif, merge6$anno),]
-summary(csur01)
 ```
+The only differences noted in these two new data sets <u>csur98</u> and <u>csur01</u>, between ones generated with R and with STATA, are differences noted in parts A - 3 and A - 4 respectively for the two data sets.<br>
 <h4 align="left"> C - tempstime Data Set</h4>
 <br>
 <h6><sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.</h6>

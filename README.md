@@ -21,3 +21,5 @@ replicate findings of 1Angelini, Paolo, and Andrea Generale. 2008. “On the Evo
 03.10.2014 03h:36 -> Finished temp9801 data set - No differences found after comparison<br>
 		     Finished csur92 correction - comparison in line with previous differences found<br>
 		     Finished csur95 correction - comparison in line with previous differences found<br>
+03.10.2014 20h:20 -> Finished csur98 correction - comparison in line with previous differences found<br>
+		     Finished csur01 correction - comparison in line with previous differences found<br>
