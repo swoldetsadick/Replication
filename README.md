@@ -18,3 +18,6 @@ replicate findings of 1Angelini, Paolo, and Andrea Generale. 2008. “On the Evo
 		     Starting with temp9295<br>
 30.09.2014 05h:15 -> Finished comparison for temp9295 data set - No differences found<br>
 		     The rest of data set generating can continue.
+03.10.2014 03h:36 -> Finished temp9801 data set - No differences found after comparison<br>
+		     Finished csur92 correction - comparison in line with previous differences found<br>
+		     Finished csur95 correction - comparison in line with previous differences found<br>
