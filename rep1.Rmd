@@ -637,5 +637,39 @@ csur01 <- merge6 [order(merge6$identif, merge6$anno),]
 ```
 The only differences noted in these two new data sets <u>csur98</u> and <u>csur01</u>, between ones generated with R and with STATA, are differences noted in parts A - 3 and A - 4 respectively for the two data sets.<br>
 <h4 align="left"> C - tempstime Data Set</h4>
+In part C of the replication process, data set tempstime_1 data set used for all OLS and GMM regressions in the original paper by the authors is reproduced. This is done in four different steps.<br>
+<h6 align="left">1 - Append the Main Data Sets</h6>
+In the first of for steps, main data sets <u>csur92</u>, <u>csur95</u>, <u>csur98</u> and <u>csur01</u> are all appended together to form one big data set. But before appending the data sets a variable **eta** is created for each data sets out of variables **eta92**, **eta95**, **eta98** and **eta01** respectively. If year of observation for a specific firm is 1990, 1993, 1996 or 1999 then **eta** is set equal to **eta92**, **eta95**, **eta98** and **eta01** minus one respectively. And if year of observation for a specific firm is 1989, 1992, 1995 or 1998 then **eta** is set equal to **eta92**, **eta95**, **eta98** and **eta01** minus two respectively.<br>
+The data set resulting from the appending process is stored under the name <u>merge7</u> after data is ordered by **identif** and **anno**.
+```{r, cache = TRUE}
+library(lubridate)
+
+csur92$eta <- ifelse(is.na(csur92$eta92), NA, csur92$eta92)
+csur92$eta <- ifelse(!is.na(csur92$eta92) & year(csur92$anno) == 1990, csur92$eta - 1, csur92$eta)
+csur92$eta <- ifelse(!is.na(csur92$eta92) & year(csur92$anno) == 1989, csur92$eta - 2, csur92$eta)
+csur92 <- csur92 [order(csur92$identif, csur92$anno),]
+
+csur95$eta <- ifelse(is.na(csur95$eta95), NA, csur95$eta95)
+csur95$eta <- ifelse(!is.na(csur95$eta95) & year(csur95$anno) == 1993, csur95$eta - 1, csur95$eta)
+csur95$eta <- ifelse(!is.na(csur95$eta95) & year(csur95$anno) == 1992, csur95$eta - 2, csur95$eta)
+csur95 <- csur95 [order(csur95$identif, csur95$anno),]
+
+csur98$eta <- ifelse(is.na(csur98$eta98), NA, csur98$eta98)
+csur98$eta <- ifelse(!is.na(csur98$eta98) & year(csur98$anno) == 1996, csur98$eta - 1, csur98$eta)
+csur98$eta <- ifelse(!is.na(csur98$eta98) & year(csur98$anno) == 1995, csur98$eta - 2, csur98$eta)
+csur98 <- csur98 [order(csur98$identif, csur98$anno),]
+
+csur01$eta <- ifelse(is.na(csur01$eta01), NA, csur01$eta01)
+csur01$eta <- ifelse(!is.na(csur01$eta01) & year(csur01$anno) == 1999, csur01$eta - 1, csur01$eta)
+csur01$eta <- ifelse(!is.na(csur01$eta01) & year(csur01$anno) == 1998, csur01$eta - 2, csur01$eta)
+csur01 <- csur01 [order(csur01$identif, csur01$anno),]
+
+merge7 <- merge(merge(csur92, csur95, all.x = TRUE, all.y = TRUE), merge(csur98, csur01, all.x = TRUE, all.y = TRUE), all.x = TRUE, all.y = TRUE)
+merge7 <- merge7[order(merge7$identif,merge7$anno),]
+```
+Except for the small differences in some variables, in the order of 10<sup>-5</sup> or 10<sup>-4</sup> in some variables, the only differences noted between the data set formed using R and using STATA at this stage comes from the differences noted in the four tables in Section B. For reminder let's note these differences in the table below.<br><br>
+<table style="width:50%" border="9" align="center"> <caption>Differences Between R & STATA Generated merge7 Data Set</caption> <tr> <td>identif</td><td>anno</td><td>R</td><td>STATA</td></tr> <tr> <td>11636</td><td>1991</td><td>duofut = 1</td><td>duofut = 0</td></tr><tr> <td>1839</td><td>1992</td><td>duofut = 1</td><td>duofut = 0</td></tr><tr> <td>1383790044</td><td>1997</td><td>duofut = 1</td><td>duofut = 0</td></tr><tr> <td>1795940377</td><td>1995</td><td>duofut = 1</td><td>duofut = 0</td></tr><tr> <td>59520065</td><td>1999</td><td>duofut = 1</td><td>duofut = 0</td></tr><tr> <td>1514750982</td><td>1999</td><td>dimm = 1</td><td>dimm = 0</td></tr><tr> <td>1588800986</td><td>2000</td><td>dimm = 1</td><td>dimm = 0</td></tr><tr> <td>2665140833</td><td>1998</td><td>dimm = 1</td><td>dimm = 0</td></tr></table><br>
+<h6 align="left">2 - Lags in tempstime Data Set</h6>
+
 <br>
 <h6><sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.</h6>
