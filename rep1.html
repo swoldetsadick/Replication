@@ -659,7 +659,7 @@ In generating data set <u>temp9801</u> no differences were observed between data
 <h6 align="left">
 3 - 1992 - 1995 main data set corrections
 </h6>
-<p>The goal in this part of data manipulation is to correct the age fields in the main data sets using the temporary data sets generated in the two previous sections. In this part, data set <u>temp9801</u> is used to correct age fields in main data sets <u>csur92</u> and <u>csur95</u>.<br> In the next section of code, data set <u>temp9801</u> and <u>csur92</u> are merged by <strong>identif</strong> variable. Next a merge indicator variable is added to data set thus obtained. Knowing that variable <strong>pofut</strong> has no missing values in <u>csur92</u> and <strong>persist</strong> in <u>temp9801</u> data set, we use this information to code <strong>merge</strong> variable. If information in a specific row comes only from <u>csur92</u> data set then <strong>pofut</strong> will have no missing value for this row while <strong>persist</strong> will be. If information in a specific row comes only from <u>temp9801</u> the inverse is true. In the first case, <strong>merge</strong> variable will have value of 1 and in the second case a value of 2. But if information in specific row comes from both data sets, then <strong>merge</strong> variable will have a value of 3.<br> Observe that only rows having information from both data sets are kept in the end. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 1992. The value for variable <strong>persist</strong> indicating persistently constrained firms is set to equal to zero for all observations as 92 is the first year considered here.<br> In the end, variables <strong>merge</strong>, <strong>eta92</strong> and <strong>eta95</strong> are kicked out of the data set, and also observations having negative age value for 1992. Data is ordered by <strong>identif</strong> and by <strong>anno</strong> then saved under the name <u>csur92</u>.</p>
+<p>The goal in this part of data manipulation is to correct the age fields in the main data sets using the temporary data sets generated in the two previous sections. In this part, data set <u>temp9295</u> is used to correct age fields in main data sets <u>csur92</u> and <u>csur95</u>.<br> In the next section of code, data set <u>temp9295</u> and <u>csur92</u> are merged by <strong>identif</strong> variable. Next a merge indicator variable is added to data set thus obtained. Knowing that variable <strong>pofut</strong> has no missing values in <u>csur92</u> and <strong>persist</strong> in <u>temp9801</u> data set, we use this information to code <strong>merge</strong> variable. If information in a specific row comes only from <u>csur92</u> data set then <strong>pofut</strong> will have no missing value for this row while <strong>persist</strong> will be. If information in a specific row comes only from <u>temp9295</u> the inverse is true. In the first case, <strong>merge</strong> variable will have value of 1 and in the second case a value of 2. But if information in specific row comes from both data sets, then <strong>merge</strong> variable will have a value of 3.<br> Observe that only rows having information from both data sets are kept in the end. Then age computed in <u>temp9295</u> replaces age fields in main data set only for 1992. The value for variable <strong>persist</strong> indicating persistently constrained firms is set to equal to zero for all observations as 92 is the first year considered here.<br> In the end, variables <strong>merge</strong>, <strong>eta92</strong> and <strong>eta95</strong> are kicked out of the data set, and also observations having negative age value for 1992. Data is ordered by <strong>identif</strong> and by <strong>anno</strong> then saved under the name <u>csur92</u>.</p>
 <pre class="r"><code># Merging csur92 &amp; temp9295 data sets
 merge3 &lt;- merge(csur92, temp9295, by=c(&quot;identif&quot;))
 
@@ -685,7 +685,7 @@ merge3 &lt;- subset(merge3, (is.na(merge3$eta92)|merge3$eta92 &gt;= 0))
 
 # Ordering data &amp; renaming csur92
 csur92 &lt;- merge3 [order(merge3$identif, merge3$anno),]</code></pre>
-<p>The same treatment is given to <u>csur95</u> data set. Except that information regarding persistence of financial constraint for firms, or <strong>persist</strong> variable, is not reset to zero but keep the original values that they took in <u>temp9295</u> data set. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 1995. And at the end it is observations with illogical for age in 1995 that are kicked out of the data set.<br> Resulting data set is saved uder <u>csur95</u>.</p>
+<p>The same treatment is given to <u>csur95</u> data set. Except that information regarding persistence of financial constraint for firms, or <strong>persist</strong> variable, is not reset to zero but keep the original values that they took in <u>temp9295</u> data set. Then age computed in <u>temp9295</u> replaces age fields in main data set only for 1995. And at the end it is observations with illogical for age in 1995 that are kicked out of the data set.<br> Resulting data set is saved uder <u>csur95</u>.</p>
 <pre class="r"><code># Merging csur92 &amp; temp9295 data sets
 merge4 &lt;- merge(csur95, temp9295, by=c(&quot;identif&quot;))
 
@@ -714,6 +714,294 @@ The only differences noted in these two new data sets <u>csur92</u> and <u>csur9
 <h6 align="left">
 4 - 1998 - 2001 main data set corrections
 </h6>
+<p>In this part, data set <u>temp9801</u> is used to correct age fields in main data sets <u>csur98</u> and <u>csur01</u>.<br> In the next section of code, data set <u>temp9801</u> and <u>csur98</u> are merged by <strong>identif</strong> variable. Next a merge indicator variable is added to data set thus obtained. Knowing that variable <strong>pofut</strong> has no missing values in <u>csur98</u> and <strong>persist</strong> in <u>temp9801</u> data set, we use this information to code <strong>merge</strong> variable. If information in a specific row comes only from <u>csur98</u> data set then <strong>pofut</strong> will have no missing value for this row while <strong>persist</strong> will be. If information in a specific row comes only from <u>temp9801</u> the inverse is true. In the first case, <strong>merge</strong> variable will have value of 1 and in the second case a value of 2. But if information in specific row comes from both data sets, then <strong>merge</strong> variable will have a value of 3.<br> Observe that only rows having information from both data sets are kept in the end. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 1998, if available. The value for variable <strong>persist</strong> indicating persistently constrained firms and <strong>perdesi</strong> indicating firms persistently in need of more credit are set to equal to zero for all observations as 98 is the first year considered here.<br> In the end, variables <strong>merge</strong>, <strong>eta98c</strong> and <strong>eta01c</strong> are kicked out of the data set. Data is ordered by <strong>identif</strong> and by <strong>anno</strong> then saved under the name <u>csur98</u>.</p>
+<pre class="r"><code>merge5 &lt;- merge(csur98, temp9801, by=c(&quot;identif&quot;))
+a &lt;- ifelse(is.na(merge5$pofut), 0, 1)
+b &lt;- ifelse(is.na(merge5$persist), 10, 20)
+c &lt;- a + b
+merge5$merge &lt;- ifelse(c == 11, 1, ifelse(c == 20, 2, 3))
+
+merge5$eta98 &lt;- ifelse(is.na(merge5$eta98c), merge5$eta98, merge5$eta98c)
+
+merge5[grep(&quot;^eta98c$&quot;,colnames(merge5))] &lt;- NULL
+merge5[grep(&quot;^eta01c$&quot;,colnames(merge5))] &lt;- NULL
+
+merge5$persist &lt;- rep(0, times = nrow(merge5))
+merge5$perdesi &lt;- rep(0, times = nrow(merge5))
+
+merge5 &lt;- subset(merge5, merge5$merge == 3)
+merge5[grep(&quot;^merge$&quot;,colnames(merge5))] &lt;- NULL
+
+csur98 &lt;- merge5 [order(merge5$identif, merge5$anno),]
+summary(csur98)</code></pre>
+<pre><code>##     identif          d17_1          d17_2          d17_3        
+##  Min.   :2.89e+06   Mode:logical   Mode:logical   Mode:logical  
+##  1st Qu.:2.84e+08   NA's:12540     NA's:12540     NA's:12540    
+##  Median :8.69e+08                                               
+##  Mean   :1.75e+09                                               
+##  3rd Qu.:1.80e+09                                               
+##  Max.   :9.76e+10                                               
+##                                                                 
+##   d17_4          d17_5          dip89          dip90        
+##  Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+##  NA's:12540     NA's:12540     NA's:12540     NA's:12540    
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##   dip91          eta92             isgru               anno     
+##  Mode:logical   Mode:logical   Min.   :0.000   1995-01-01:4180  
+##  NA's:12540     NA's:12540     1st Qu.:0.000   1996-01-01:4180  
+##                                Median :0.000   1997-01-01:4180  
+##                                Mean   :0.246                    
+##                                3rd Qu.:0.000                    
+##                                Max.   :1.000                    
+##                                                                 
+##       aco               aim              sales              util       
+##  Min.   :      4   Min.   :      0   Min.   :     10   Min.   :-56506  
+##  1st Qu.:   3347   1st Qu.:   1009   1st Qu.:   5000   1st Qu.:   254  
+##  Median :   6671   Median :   2637   Median :   9676   Median :   650  
+##  Mean   :  28420   Mean   :  15185   Mean   :  43683   Mean   :  3427  
+##  3rd Qu.:  17929   3rd Qu.:   7499   3rd Qu.:  24982   3rd Qu.:  1840  
+##  Max.   :3905166   Max.   :2627637   Max.   :8320000   Max.   :460893  
+##  NA's   :2024      NA's   :2024      NA's   :176       NA's   :2024    
+##      utiln               of              imim             imte        
+##  Min.   :-132235   Min.   :     0   Min.   :     0   Min.   :      0  
+##  1st Qu.:     20   1st Qu.:   137   1st Qu.:    11   1st Qu.:    753  
+##  Median :    211   Median :   331   Median :    62   Median :   2112  
+##  Mean   :   1882   Mean   :  1544   Mean   :   895   Mean   :   9381  
+##  3rd Qu.:    918   3rd Qu.:   892   3rd Qu.:   262   3rd Qu.:   5986  
+##  Max.   : 274195   Max.   :325595   Max.   :363137   Max.   :1140744  
+##  NA's   :2024      NA's   :2024     NA's   :2024     NA's   :2024     
+##   ind92         nonotten       avrebacc        dip92        
+##  Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+##  NA's:12540     NA's:12540     NA's:12540     NA's:12540    
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##   dip93          dip94          eta95          ind95        
+##  Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+##  NA's:12540     NA's:12540     NA's:12540     NA's:12540    
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##      dip95          dip96          dip97          eta98      
+##  Min.   :   0   Min.   :   0   Min.   :  11   Min.   :  1.0  
+##  1st Qu.:  20   1st Qu.:  20   1st Qu.:  20   1st Qu.: 12.0  
+##  Median :  32   Median :  33   Median :  34   Median : 20.0  
+##  Mean   : 111   Mean   : 114   Mean   : 117   Mean   : 24.3  
+##  3rd Qu.:  77   3rd Qu.:  79   3rd Qu.:  81   3rd Qu.: 30.0  
+##  Max.   :8019   Max.   :7598   Max.   :7885   Max.   :162.0  
+##  NA's   :216    NA's   :66                    NA's   :6      
+##       desi           chie           paga          eta98n          ind98  
+##  Min.   :0.00   Min.   :1.00   Min.   :1.00   Min.   : -7.0   Min.   :1  
+##  1st Qu.:0.00   1st Qu.:2.00   1st Qu.:2.00   1st Qu.: 10.0   1st Qu.:1  
+##  Median :0.00   Median :2.00   Median :2.00   Median : 17.0   Median :1  
+##  Mean   :0.14   Mean   :1.96   Mean   :1.95   Mean   : 19.6   Mean   :1  
+##  3rd Qu.:0.00   3rd Qu.:2.00   3rd Qu.:2.00   3rd Qu.: 25.0   3rd Qu.:1  
+##  Max.   :1.00   Max.   :2.00   Max.   :2.00   Max.   :133.0   Max.   :1  
+##  NA's   :135    NA's   :153    NA's   :162    NA's   :2964               
+##   dip98          dip99          dip00          eta01        
+##  Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+##  NA's:12540     NA's:12540     NA's:12540     NA's:12540    
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##   eta01n         ind01              razd          raz98d         duacq    
+##  Mode:logical   Mode:logical   Min.   :0.00   Min.   :0.00   Min.   :0.0  
+##  NA's:12540     NA's:12540     1st Qu.:0.00   1st Qu.:0.00   1st Qu.:0.0  
+##                                Median :0.00   Median :0.00   Median :0.0  
+##                                Mean   :0.03   Mean   :0.03   Mean   :0.1  
+##                                3rd Qu.:0.00   3rd Qu.:0.00   3rd Qu.:0.0  
+##                                Max.   :1.00   Max.   :1.00   Max.   :1.0  
+##                                NA's   :135    NA's   :135                 
+##      dusco            dupav1         dupav2          dupav3     
+##  Min.   :0.0000   Min.   :0.00   Min.   :0.000   Min.   :0.000  
+##  1st Qu.:0.0000   1st Qu.:0.00   1st Qu.:0.000   1st Qu.:0.000  
+##  Median :0.0000   Median :0.00   Median :0.000   Median :0.000  
+##  Mean   :0.0325   Mean   :0.46   Mean   :0.209   Mean   :0.299  
+##  3rd Qu.:0.0000   3rd Qu.:1.00   3rd Qu.:0.000   3rd Qu.:1.000  
+##  Max.   :1.0000   Max.   :1.00   Max.   :1.000   Max.   :1.000  
+##                                                                 
+##      dupav4            roa            ofut            quoimm    
+##  Min.   :0.0000   Min.   :-1.8   Min.   :-487.0   Min.   :0.0   
+##  1st Qu.:0.0000   1st Qu.: 0.0   1st Qu.:   0.2   1st Qu.:0.1   
+##  Median :0.0000   Median : 0.1   Median :   0.5   Median :0.2   
+##  Mean   :0.0328   Mean   : 0.1   Mean   :   0.6   Mean   :0.2   
+##  3rd Qu.:0.0000   3rd Qu.: 0.1   3rd Qu.:   0.9   3rd Qu.:0.3   
+##  Max.   :1.0000   Max.   : 0.9   Max.   : 481.9   Max.   :0.9   
+##                   NA's   :2024   NA's   :2029     NA's   :2024  
+##      lsales          pofut           duofut        pquoimm     
+##  Min.   : 2.30   Min.   :0.839   Min.   :0.0    Min.   :0.112  
+##  1st Qu.: 8.52   1st Qu.:0.839   1st Qu.:0.0    1st Qu.:0.112  
+##  Median : 9.18   Median :0.847   Median :0.0    Median :0.114  
+##  Mean   : 9.44   Mean   :0.857   Mean   :0.2    Mean   :0.114  
+##  3rd Qu.:10.13   3rd Qu.:0.884   3rd Qu.:0.0    3rd Qu.:0.115  
+##  Max.   :15.93   Max.   :0.884   Max.   :1.0    Max.   :0.115  
+##  NA's   :176                     NA's   :2029                  
+##       dimm          desi98        persist     perdesi 
+##  Min.   :0.0    Min.   :0.00   Min.   :0   Min.   :0  
+##  1st Qu.:0.0    1st Qu.:0.00   1st Qu.:0   1st Qu.:0  
+##  Median :0.0    Median :0.00   Median :0   Median :0  
+##  Mean   :0.2    Mean   :0.14   Mean   :0   Mean   :0  
+##  3rd Qu.:0.0    3rd Qu.:0.00   3rd Qu.:0   3rd Qu.:0  
+##  Max.   :1.0    Max.   :1.00   Max.   :0   Max.   :0  
+##  NA's   :2024   NA's   :135</code></pre>
+<p>The same treatment is given to <u>csur01</u> data set. Except that information regarding persistence of financial constraint for firms, or <strong>persist</strong> variable and persistence of desire of more credit from firms <strong>perdesi</strong>, are not reset to zero but keep their original values that they took in <u>temp9801</u> data set. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 2001. <br> Resulting data set is saved uder <u>csur01</u>.</p>
+<pre class="r"><code>merge6 &lt;- merge(csur01, temp9801, by=c(&quot;identif&quot;))
+a &lt;- ifelse(is.na(merge6$pofut), 0, 1)
+b &lt;- ifelse(is.na(merge6$persist), 10, 20)
+c &lt;- a + b
+merge6$merge &lt;- ifelse(c == 11, 1, ifelse(c == 20, 2, 3))
+
+merge6$eta01 &lt;- ifelse(is.na(merge6$eta01c), merge6$eta01, merge6$eta01c)
+
+merge6[grep(&quot;^eta98c$&quot;,colnames(merge6))] &lt;- NULL
+merge6[grep(&quot;^eta01c$&quot;,colnames(merge6))] &lt;- NULL
+
+merge6 &lt;- subset(merge6, merge6$merge == 3)
+merge6[grep(&quot;^merge$&quot;,colnames(merge6))] &lt;- NULL
+
+csur01 &lt;- merge6 [order(merge6$identif, merge6$anno),]
+summary(csur01)</code></pre>
+<pre><code>##     identif          d17_1          d17_2          d17_3        
+##  Min.   :1.92e+04   Mode:logical   Mode:logical   Mode:logical  
+##  1st Qu.:3.90e+08   NA's:12057     NA's:12057     NA's:12057    
+##  Median :1.13e+09                                               
+##  Mean   :1.95e+09                                               
+##  3rd Qu.:2.08e+09                                               
+##  Max.   :9.60e+10                                               
+##                                                                 
+##   d17_4          d17_5          dip89          dip90        
+##  Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+##  NA's:12057     NA's:12057     NA's:12057     NA's:12057    
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##   dip91          eta92             isgru               anno     
+##  Mode:logical   Mode:logical   Min.   :0.000   1998-01-01:3793  
+##  NA's:12057     NA's:12057     1st Qu.:0.000   1999-01-01:3793  
+##                                Median :0.000   2000-01-01:4471  
+##                                Mean   :0.195                    
+##                                3rd Qu.:0.000                    
+##                                Max.   :1.000                    
+##                                                                 
+##       aco               aim              sales              util       
+##  Min.   :     51   Min.   :    -51   Min.   :    180   Min.   :-43658  
+##  1st Qu.:   1181   1st Qu.:    320   1st Qu.:   2070   1st Qu.:    81  
+##  Median :   2162   Median :    799   Median :   3576   Median :   183  
+##  Mean   :   9175   Mean   :   5829   Mean   :  14661   Mean   :  1083  
+##  3rd Qu.:   4896   3rd Qu.:   2089   3rd Qu.:   7759   3rd Qu.:   466  
+##  Max.   :1414805   Max.   :2079353   Max.   :1995000   Max.   :357513  
+##  NA's   :678       NA's   :678       NA's   :678       NA's   :678     
+##      utiln              of             imim             imte        
+##  Min.   :-67974   Min.   :    0   Min.   :     0   Min.   :      0  
+##  1st Qu.:    23   1st Qu.:   28   1st Qu.:     4   1st Qu.:    221  
+##  Median :    94   Median :   68   Median :    23   Median :    649  
+##  Mean   :   731   Mean   :  352   Mean   :   473   Mean   :   3647  
+##  3rd Qu.:   309   3rd Qu.:  163   3rd Qu.:    90   3rd Qu.:   1739  
+##  Max.   :267775   Max.   :89738   Max.   :409549   Max.   :1994068  
+##  NA's   :678      NA's   :678     NA's   :678      NA's   :678      
+##   ind92         nonotten       avrebacc        dip92        
+##  Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+##  NA's:12057     NA's:12057     NA's:12057     NA's:12057    
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##   dip93          dip94          eta95          ind95        
+##  Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+##  NA's:12057     NA's:12057     NA's:12057     NA's:12057    
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##   dip95          dip96          dip97          eta98        
+##  Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+##  NA's:12057     NA's:12057     NA's:12057     NA's:12057    
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##                                                             
+##       desi           chie          paga       eta98n         ind98        
+##  Min.   :0.00   Min.   :1     Min.   :1      Mode:logical   Mode:logical  
+##  1st Qu.:0.00   1st Qu.:2     1st Qu.:1      NA's:12057     NA's:12057    
+##  Median :0.00   Median :2     Median :2                                   
+##  Mean   :0.19   Mean   :2     Mean   :2                                   
+##  3rd Qu.:0.00   3rd Qu.:2     3rd Qu.:2                                   
+##  Max.   :1.00   Max.   :2     Max.   :2                                   
+##  NA's   :166    NA's   :542   NA's   :8768                                
+##      dip98           dip99           dip00           eta01    
+##  Min.   :   -1   Min.   :   -1   Min.   :   11   Min.   :  3  
+##  1st Qu.:   17   1st Qu.:   17   1st Qu.:   18   1st Qu.: 13  
+##  Median :   24   Median :   25   Median :   25   Median : 21  
+##  Mean   :   78   Mean   :   79   Mean   :   81   Mean   : 24  
+##  3rd Qu.:   45   3rd Qu.:   45   3rd Qu.:   47   3rd Qu.: 31  
+##  Max.   :16821   Max.   :13991   Max.   :12630   Max.   :183  
+##  NA's   :4                                       NA's   :24   
+##      eta01n          ind01        razd          raz01d    
+##  Min.   : -4.0   Min.   :1   Min.   :0.00   Min.   :0.00  
+##  1st Qu.: 11.0   1st Qu.:1   1st Qu.:0.00   1st Qu.:0.00  
+##  Median : 17.0   Median :1   Median :0.00   Median :0.00  
+##  Mean   : 19.7   Mean   :1   Mean   :0.04   Mean   :0.04  
+##  3rd Qu.: 25.0   3rd Qu.:1   3rd Qu.:0.00   3rd Qu.:0.00  
+##  Max.   :136.0   Max.   :1   Max.   :1.00   Max.   :1.00  
+##  NA's   :2255                NA's   :166    NA's   :166   
+##      duacq            dusco            dupav1          dupav2    
+##  Min.   :0.0000   Min.   :0.0000   Min.   :0.000   Min.   :0.00  
+##  1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.:0.000   1st Qu.:0.00  
+##  Median :0.0000   Median :0.0000   Median :1.000   Median :0.00  
+##  Mean   :0.0776   Mean   :0.0262   Mean   :0.528   Mean   :0.18  
+##  3rd Qu.:0.0000   3rd Qu.:0.0000   3rd Qu.:1.000   3rd Qu.:0.00  
+##  Max.   :1.0000   Max.   :1.0000   Max.   :1.000   Max.   :1.00  
+##                                                                  
+##      dupav3          dupav4            roa            ofut          
+##  Min.   :0.000   Min.   :0.0000   Min.   :-0.7   Min.   :-6.47e+02  
+##  1st Qu.:0.000   1st Qu.:0.0000   1st Qu.: 0.0   1st Qu.: 0.00e+00  
+##  Median :0.000   Median :0.0000   Median : 0.1   Median : 0.00e+00  
+##  Mean   :0.242   Mean   :0.0502   Mean   : 0.1   Mean   : 9.07e+10  
+##  3rd Qu.:0.000   3rd Qu.:0.0000   3rd Qu.: 0.1   3rd Qu.: 1.00e+00  
+##  Max.   :1.000   Max.   :1.0000   Max.   : 0.7   Max.   : 1.03e+15  
+##                                   NA's   :678    NA's   :682        
+##      quoimm        lsales         pofut           duofut   
+##  Min.   :0.0   Min.   : 5.2   Min.   :0.599   Min.   :0.0  
+##  1st Qu.:0.1   1st Qu.: 7.6   1st Qu.:0.599   1st Qu.:0.0  
+##  Median :0.2   Median : 8.2   Median :0.632   Median :0.0  
+##  Mean   :0.2   Mean   : 8.4   Mean   :0.638   Mean   :0.3  
+##  3rd Qu.:0.3   3rd Qu.: 9.0   3rd Qu.:0.683   3rd Qu.:1.0  
+##  Max.   :0.9   Max.   :14.5   Max.   :0.683   Max.   :1.0  
+##  NA's   :678   NA's   :678                    NA's   :682  
+##     pquoimm            dimm         desi01        persist     
+##  Min.   :0.0996   Min.   :0.0   Min.   :0.00   Min.   :0e+00  
+##  1st Qu.:0.0996   1st Qu.:0.0   1st Qu.:0.00   1st Qu.:0e+00  
+##  Median :0.1001   Median :0.0   Median :0.00   Median :0e+00  
+##  Mean   :0.1000   Mean   :0.3   Mean   :0.19   Mean   :7e-04  
+##  3rd Qu.:0.1003   3rd Qu.:1.0   3rd Qu.:0.00   3rd Qu.:0e+00  
+##  Max.   :0.1003   Max.   :1.0   Max.   :1.00   Max.   :1e+00  
+##                   NA's   :678   NA's   :166                   
+##     perdesi      
+##  Min.   :0.0000  
+##  1st Qu.:0.0000  
+##  Median :0.0000  
+##  Mean   :0.0119  
+##  3rd Qu.:0.0000  
+##  Max.   :1.0000  
+## </code></pre>
+<h4 align="left"> 
+C - tempstime Data Set
+</h4>
 <br>
 <h6>
 <sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. “On the Evolution of Firm Size Distributions.” American Economic Review, 98(1): 426-38.
