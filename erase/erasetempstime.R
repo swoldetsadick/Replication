@@ -38,7 +38,26 @@ merge7 <- merge(merge(csur92, csur95, all.x = TRUE, all.y = TRUE), merge(csur98,
 merge7 <- merge7[order(merge7$identif, merge7$anno),]
 
 ### Generating lags
+library(lubridate)
+merge8 <-  within(merge7, { 
+        detab <- ave(eta, identif, FUN = function(x) c(NA, diff(x))) 
+        roa1 <- ave(roa, identif, FUN = function(x) c(NA, x[-length(x)]))
+        danno <- ave(year(merge7$anno), identif, FUN = function(x) c(NA, diff(x))) 
+})
 
+#A <- subset(merge8, detab!=1 & !is.na(detab))
+#A <- data.frame(cbind(A$identif, as.character(year(A$anno))))
+#B <- subset(merge8, danno!=1 & !is.na(danno))
+#B <- data.frame(cbind(B$identif, as.character(year(B$anno))))
+#C <- subset(merge8, detab!=1 & !is.na(detab)&danno==1)
+#C <- data.frame(cbind(C$identif, as.character(year(C$anno))))
+#D <- subset(merge8, danno!=1 & !is.na(danno))
+#D <- data.frame(cbind(D$identif, as.character(year(D$anno))))
+
+#View(A)
+#View(B)
+#View(C)
+#View(D)
 
 
 
