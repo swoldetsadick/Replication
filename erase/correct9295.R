@@ -1,5 +1,3 @@
-
-
 setwd("~/Downloads/Desktop/Replication/erase")
 csur92 <- read.table("~/Downloads/Desktop/Replication/erase/erasecsur92.txt", header=TRUE, quote="\"")
 temp9295 <- read.table("~/Downloads/Desktop/Replication/erase/erasetemp9295.txt", header=TRUE, quote="\"")
