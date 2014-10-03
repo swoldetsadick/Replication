@@ -655,8 +655,64 @@ names(temp9801)[2]=&quot;eta98c&quot;
 names(temp9801)[3]=&quot;eta01c&quot;
 
 temp9801 &lt;- temp9801[order(temp9801$identif),]</code></pre>
+In generating data set <u>temp9801</u> no differences were observed between data set generated with STATA and one generated with R.
 <h6 align="left">
 3 - 1992 - 1995 main data set corrections
+</h6>
+<p>The goal in this part of data manipulation is to correct the age fields in the main data sets using the temporary data sets generated in the two previous sections. In this part, data set <u>temp9801</u> is used to correct age fields in main data sets <u>csur92</u> and <u>csur95</u>.<br> In the next section of code, data set <u>temp9801</u> and <u>csur92</u> are merged by <strong>identif</strong> variable. Next a merge indicator variable is added to data set thus obtained. Knowing that variable <strong>pofut</strong> has no missing values in <u>csur92</u> and <strong>persist</strong> in <u>temp9801</u> data set, we use this information to code <strong>merge</strong> variable. If information in a specific row comes only from <u>csur92</u> data set then <strong>pofut</strong> will have no missing value for this row while <strong>persist</strong> will be. If information in a specific row comes only from <u>temp9801</u> the inverse is true. In the first case, <strong>merge</strong> variable will have value of 1 and in the second case a value of 2. But if information in specific row comes from both data sets, then <strong>merge</strong> variable will have a value of 3.<br> Observe that only rows having information from both data sets are kept in the end. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 1992. The value for variable <strong>persist</strong> indicating persistently constrained firms is set to equal to zero for all observations as 92 is the first year considered here.<br> In the end, variables <strong>merge</strong>, <strong>eta92</strong> and <strong>eta95</strong> are kicked out of the data set, and also observations having negative age value for 1992. Data is ordered by <strong>identif</strong> and by <strong>anno</strong> then saved under the name <u>csur92</u>.</p>
+<pre class="r"><code># Merging csur92 &amp; temp9295 data sets
+merge3 &lt;- merge(csur92, temp9295, by=c(&quot;identif&quot;))
+
+#Creating merge indicator
+a &lt;- ifelse(is.na(merge3$pofut), 0, 1)
+b &lt;- ifelse(is.na(merge3$persist), 10, 20)
+c &lt;- a + b
+merge3$merge &lt;- ifelse(c == 11, 1, ifelse(c == 20, 2, 3))
+
+#subsetting rows with info from both data sets
+merge3 &lt;- subset(merge3, merge3$merge == 3)
+
+#correcting age fields
+merge3$eta92 &lt;- merge3$eta92c
+#correcting persistance of financial constraints
+merge3$persist &lt;- rep(0, times = nrow(merge3))
+
+#Kicking out merge, eta92c &amp; eta95c &amp; observation with illogical age fields
+merge3[grep(&quot;^merge$&quot;,colnames(merge3))] &lt;- NULL
+merge3[grep(&quot;^eta92c$&quot;,colnames(merge3))] &lt;- NULL
+merge3[grep(&quot;^eta95c$&quot;,colnames(merge3))] &lt;- NULL
+merge3 &lt;- subset(merge3, (is.na(merge3$eta92)|merge3$eta92 &gt;= 0))
+
+# Ordering data &amp; renaming csur92
+csur92 &lt;- merge3 [order(merge3$identif, merge3$anno),]</code></pre>
+<p>The same treatment is given to <u>csur95</u> data set. Except that information regarding persistence of financial constraint for firms, or <strong>persist</strong> variable, is not reset to zero but keep the original values that they took in <u>temp9295</u> data set. Then age computed in <u>temp9801</u> replaces age fields in main data set only for 1995. And at the end it is observations with illogical for age in 1995 that are kicked out of the data set.<br> Resulting data set is saved uder <u>csur95</u>.</p>
+<pre class="r"><code># Merging csur92 &amp; temp9295 data sets
+merge4 &lt;- merge(csur95, temp9295, by=c(&quot;identif&quot;))
+
+#Creating merge indicator
+a &lt;- ifelse(is.na(merge4$pofut), 0, 1)
+b &lt;- ifelse(is.na(merge4$persist), 10, 20)
+c &lt;- a + b
+merge4$merge &lt;- ifelse(c == 11, 1, ifelse(c == 20, 2, 3))
+
+#subsetting rows with info from both data sets
+merge4 &lt;- subset(merge4, merge4$merge == 3)
+
+#correcting age fields
+merge4$eta95 &lt;- merge4$eta95c
+
+merge4[grep(&quot;^merge$&quot;,colnames(merge4))] &lt;- NULL
+merge4[grep(&quot;^eta92c$&quot;,colnames(merge4))] &lt;- NULL
+merge4[grep(&quot;^eta95c$&quot;,colnames(merge4))] &lt;- NULL
+
+#Kicking out merge, eta92c &amp; eta95c &amp; observation with illogical age fields
+merge4 &lt;- subset(merge4, (is.na(merge4$eta95)|merge4$eta95 &gt;= 0))
+
+# Ordering data &amp; renaming csur95
+csur95 &lt;- merge4 [order(merge4$identif, merge4$anno),]</code></pre>
+The only differences noted in these two new data sets <u>csur92</u> and <u>csur95</u>, between ones generated with R and with STATA, are differences noted in parts A - 1 and A - 2 respectively for the two data sets.
+<h6 align="left">
+4 - 1998 - 2001 main data set corrections
 </h6>
 <br>
 <h6>

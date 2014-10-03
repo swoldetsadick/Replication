@@ -589,8 +589,8 @@ merge4 <- subset(merge4, (is.na(merge4$eta95)|merge4$eta95 >= 0))
 
 # Ordering data & renaming csur95
 csur95 <- merge4 [order(merge4$identif, merge4$anno),]
-
 ```
-
+The only differences noted in these two new data sets <u>csur92</u> and <u>csur95</u>, between ones generated with R and with STATA, are differences noted in parts A - 1 and A - 2 respectively for the two data sets.
+<h6 align="left">4 - 1998 - 2001 main data set corrections</h6>
 <br>
 <h6><sup>1</sup>Angelini, Paolo, and Andrea Generale. 2008. "On the Evolution of Firm Size Distributions." American Economic Review, 98(1): 426-38.</h6>
