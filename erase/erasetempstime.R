@@ -33,31 +33,43 @@ write.table(csur92, "./csur92.txt", row.names=FALSE)
 write.table(csur95, "./csur95.txt", row.names=FALSE)
 write.table(csur98, "./csur98.txt", row.names=FALSE)
 write.table(csur01, "./csur01.txt", row.names=FALSE)
- 
+
+csur92 <- read.table("./csur92.txt", header = TRUE)
+csur95 <- read.table("./csur95.txt", header = TRUE)
+csur98 <- read.table("./csur98.txt", header = TRUE)
+csur01 <- read.table("./csur01.txt", header = TRUE)
+
 merge7 <- merge(merge(csur92, csur95, all.x = TRUE, all.y = TRUE), merge(csur98, csur01, all.x = TRUE, all.y = TRUE), all.x = TRUE, all.y = TRUE)
 merge7 <- merge7[order(merge7$identif, merge7$anno),]
 
 ### Generating lags
 library(lubridate)
-merge8 <-  within(merge7, { 
+merge7 <-  within(merge7, { 
         detab <- ave(eta, identif, FUN = function(x) c(NA, diff(x))) 
         roa1 <- ave(roa, identif, FUN = function(x) c(NA, x[-length(x)]))
         danno <- ave(year(merge7$anno), identif, FUN = function(x) c(NA, diff(x))) 
 })
 
-#A <- subset(merge8, detab!=1 & !is.na(detab))
+#A <- subset(merge7, detab!=1 & !is.na(detab))
 #A <- data.frame(cbind(A$identif, as.character(year(A$anno))))
-#B <- subset(merge8, danno!=1 & !is.na(danno))
+#B <- subset(merge7, danno!=1 & !is.na(danno))
 #B <- data.frame(cbind(B$identif, as.character(year(B$anno))))
-#C <- subset(merge8, detab!=1 & !is.na(detab)&danno==1)
+#C <- subset(merge7, detab!=1 & !is.na(detab)&danno==1)
 #C <- data.frame(cbind(C$identif, as.character(year(C$anno))))
-#D <- subset(merge8, danno!=1 & !is.na(danno))
+#D <- subset(merge7, danno!=1 & !is.na(danno))
 #D <- data.frame(cbind(D$identif, as.character(year(D$anno))))
 
 #View(A)
 #View(B)
 #View(C)
 #View(D)
+a <- year(merge7$anno)
+a <- as.character(a)
+a <- strsplit(a, "(?<=.{2})", perl = TRUE)
+a <- data.frame(matrix(unlist(res), nrow = nrow(merge7), byrow = TRUE))
+a <- a$X2
+b <- rep("dip", times = nrow(merge7))
+c <- paste(b, a, sep = "$")
 
 
 
