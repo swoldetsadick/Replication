@@ -64,10 +64,32 @@ merge7 <-  within(merge7, {
 #View(C)
 #View(D)
 
-merge7$dip <- ifelse(merge7$anno==1989,merge7$dip89,ifelse(merge7$anno==1990,merge7$dip90,ifelse(merge7$anno==1991,merge7$dip91,ifelse(merge7$anno==1992,merge7$dip92,ifelse(merge7$anno==1993,merge7$dip93,ifelse(merge7$anno==1994,merge7$dip94,ifelse(merge7$anno==1995,merge7$dip95,ifelse(merge7$anno==1996,merge7$dip96,ifelse(merge7$anno==1997,merge7$dip97,ifelse(merge7$anno==1998,merge7$dip98,ifelse(merge7$anno==1999,merge7$dip99,merge7$dip00)))))))))))
+merge7$dip <- ifelse(year(merge7$anno)==1989,merge7$dip89,ifelse(year(merge7$anno)==1990,merge7$dip90,ifelse(year(merge7$anno)==1991,merge7$dip91,ifelse(year(merge7$anno)==1992,merge7$dip92,ifelse(year(merge7$anno)==1993,merge7$dip93,ifelse(year(merge7$anno)==1994,merge7$dip94,ifelse(year(merge7$anno)==1995,merge7$dip95,ifelse(year(merge7$anno)==1996,merge7$dip96,ifelse(year(merge7$anno)==1997,merge7$dip97,ifelse(year(merge7$anno)==1998,merge7$dip98,ifelse(year(merge7$anno)==1999,merge7$dip99,merge7$dip00)))))))))))
+
 merge7$identif <- as.factor(merge7$identif)
 
-library(data.table)
+# Creating identif LAG by identif
+E <- data.frame(as.factor(merge7$identif))
+G <- data.frame(rbind(as.character(NA), E))
+G <- data.frame(G[-nrow(G),])
+H <- data.frame(cbind(E, G))
+colnames(H) <- c("nlg", "lg1")
+H$rl <- ifelse(H$nlg == H$lg1, as.character(H$nlg), NA)
+
+# Creating identif LEAD by identif
+I <- data.frame(rbind(E, as.character(NA)))
+I <- data.frame(I[-1,])
+J <- data.frame(cbind(E, I))
+colnames(J) <- c("nad", "ad1")
+J$ra <- ifelse(J$nad == J$ad1, as.character(J$nad), NA)
+
+# identif LAG is called id1 and LEAD id3 (by identif)
+merge7$id1 <- H$rl
+merge7$id3 <- J$ra
+
+# creating dip1, dip2 and dip3 variables which represent number of firms by identif
+# lagged one time, two times and leaded one time respectively
+suppressMessages(library(data.table))
 merge7 <- data.table(merge7, key = "identif")
 merge7[,c("dip1") := list(c(NA, dip[-.N])), by = identif]
 merge7[,c("dip2") := list(c(NA, dip1[-.N])), by = identif]
@@ -76,22 +98,25 @@ merge7 <- merge7[order(merge7$identif, merge7$anno, decreasing = TRUE)]
 merge7[,c("dip3") := list(c(NA, dip[-.N])), by = identif]
 merge7 <- merge7[order(merge7$identif, merge7$anno, decreasing = FALSE)]
 
-merge7$dip <- ifelse(is.na(merge7$dip) & !is.na(merge7$dip3) & !is.na(merge7$dip1) & merge7$idn11 == merge7$idn12, (merge7$dip3+merge7$dip1)/2, merge7$dip)
+# Interpolating possible missing values of number of employees in firm
+# Missing value is filled by averaging the number of employees in firm
+# exactly from one year before and after if they exist for the specific firm
+merge7$dip <- ifelse(is.na(merge7$dip) & !is.na(merge7$dip3) & !is.na(merge7$dip1) & merge7$id1 == merge7$id3, (merge7$dip3+merge7$dip1)/2, merge7$dip)
 
-merge7$ddip <- ((merge7$dip-merge7$dip11)/merge7$dip11)
-merge7$ldip <- log(merge7$dip)
-merge7$ldip1 <- log(merge7$dip1)
-merge7$ldip2 <- log(merge7$dip1)
+# Growth rate in number of employees (ddip)
+merge7$ddip <- ((merge7$dip-merge7$dip1)/merge7$dip1)
 
+# log of number of employees the same year for the specific firm, a year before
+# and two years before (resp. ldip, ldip1 and ldip2)
+suppressWarnings(merge7$ldip <- ifelse(is.infinite(log(merge7$dip)), NA, log(merge7$dip)))
+suppressWarnings(merge7$ldip1 <- ifelse(is.infinite(log(merge7$dip1)), NA, log(merge7$dip1)))
+suppressWarnings(merge7$ldip2 <- ifelse(is.infinite(log(merge7$dip2)), NA, log(merge7$dip2)))
 
-a <- year(merge7$anno)
-a <- as.character(a)
-a <- strsplit(a, "(?<=.{2})", perl = TRUE)
-a <- data.frame(matrix(unlist(res), nrow = nrow(merge7), byrow = TRUE))
-a <- a$X2
-b <- rep("dip", times = nrow(merge7))
-c <- paste(b, a, sep = "")
-merge7$dip <- merge7$
+merge7 <- data.frame(merge7)
 
-
+merge7$id1 <- NULL
+merge7$id3 <- NULL
+merge7$dip1 <- NULL
+merge7$dip2 <- NULL
+merge7$dip3 <- NULL
 
