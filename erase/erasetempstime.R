@@ -63,14 +63,35 @@ merge7 <-  within(merge7, {
 #View(B)
 #View(C)
 #View(D)
+
+merge7$dip <- ifelse(merge7$anno==1989,merge7$dip89,ifelse(merge7$anno==1990,merge7$dip90,ifelse(merge7$anno==1991,merge7$dip91,ifelse(merge7$anno==1992,merge7$dip92,ifelse(merge7$anno==1993,merge7$dip93,ifelse(merge7$anno==1994,merge7$dip94,ifelse(merge7$anno==1995,merge7$dip95,ifelse(merge7$anno==1996,merge7$dip96,ifelse(merge7$anno==1997,merge7$dip97,ifelse(merge7$anno==1998,merge7$dip98,ifelse(merge7$anno==1999,merge7$dip99,merge7$dip00)))))))))))
+merge7$identif <- as.factor(merge7$identif)
+
+library(data.table)
+merge7 <- data.table(merge7, key = "identif")
+merge7[,c("dip1") := list(c(NA, dip[-.N])), by = identif]
+merge7[,c("dip2") := list(c(NA, dip1[-.N])), by = identif]
+
+merge7 <- merge7[order(merge7$identif, merge7$anno, decreasing = TRUE)]
+merge7[,c("dip3") := list(c(NA, dip[-.N])), by = identif]
+merge7 <- merge7[order(merge7$identif, merge7$anno, decreasing = FALSE)]
+
+merge7$dip <- ifelse(is.na(merge7$dip) & !is.na(merge7$dip3) & !is.na(merge7$dip1) & merge7$idn11 == merge7$idn12, (merge7$dip3+merge7$dip1)/2, merge7$dip)
+
+merge7$ddip <- ((merge7$dip-merge7$dip11)/merge7$dip11)
+merge7$ldip <- log(merge7$dip)
+merge7$ldip1 <- log(merge7$dip1)
+merge7$ldip2 <- log(merge7$dip1)
+
+
 a <- year(merge7$anno)
 a <- as.character(a)
 a <- strsplit(a, "(?<=.{2})", perl = TRUE)
 a <- data.frame(matrix(unlist(res), nrow = nrow(merge7), byrow = TRUE))
 a <- a$X2
 b <- rep("dip", times = nrow(merge7))
-c <- paste(b, a, sep = "$")
-
+c <- paste(b, a, sep = "")
+merge7$dip <- merge7$
 
 
 
