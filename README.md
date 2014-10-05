@@ -23,3 +23,4 @@ replicate findings of 1Angelini, Paolo, and Andrea Generale. 2008. “On the Evo
 		     Finished csur95 correction - comparison in line with previous differences found<br>
 03.10.2014 20h:20 -> Finished csur98 correction - comparison in line with previous differences found<br>
 		     Finished csur01 correction - comparison in line with previous differences found<br>
+Good
