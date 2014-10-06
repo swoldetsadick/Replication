@@ -112,6 +112,13 @@ suppressWarnings(merge7$ldip <- ifelse(is.infinite(log(merge7$dip)), NA, log(mer
 suppressWarnings(merge7$ldip1 <- ifelse(is.infinite(log(merge7$dip1)), NA, log(merge7$dip1)))
 suppressWarnings(merge7$ldip2 <- ifelse(is.infinite(log(merge7$dip2)), NA, log(merge7$dip2)))
 
+merge7$id <- merge7$identif
+
+lg <- function(x)c(NA,x[1:(length(x)-1)])
+ld <- function(x)c(NA,x[1:(length(x)+1)])
+merge7[, lid := lg(id), by = c("identif")]
+merge7[, vid := ld(id), by = c("identif")]
+
 merge7 <- data.frame(merge7)
 
 merge7$id1 <- NULL
