@@ -113,7 +113,12 @@ merge7$dip3 <- NULL
 ### Generating Dummies
 merge7$duage <- ifelse(merge7$eta<7,0,ifelse(6<merge7$eta&16>merge7$eta,1,ifelse(15<merge7$eta&26>merge7$eta,2,ifelse(25<merge7$eta&51>merge7$eta,3,ifelse(50<merge7$eta|is.na(merge7$eta),4,NA)))))
 ugo <- 7
-merge7$dupico <- ifelse(merge7$dip < 50, 1, 0)
+
+a <- ifelse(is.na(merge7$eta), 0, 1)
+b <- ifelse(is.na(merge7$dip), 20,ifelse(merge7$dip < 50, 10, 20))
+c <- a + b
+merge7$dupico <- ifelse(c == 10|c == 11, 1, ifelse(c == 20, NA, 0))
+
 merge7$razdy <-ifelse(merge7$razd == 1 & merge7$eta < ugo, 1, ifelse(is.na(merge7$razd), NA, 0))
 merge7$dimmy <- ifelse(merge7$dim == 1 & merge7$eta < ugo, 1, 0)
 merge7$dofuy <- ifelse(merge7$duofut == 1 & merge7$eta < ugo, 1, 0)
@@ -130,4 +135,5 @@ merge7$dudexy <- ifelse(merge7$dudex == 1 & merge7$eta < ugo, 1, ifelse(is.na(me
 merge7$dudexp <- ifelse(merge7$dudex == 1 & merge7$dupico == 1, 1, ifelse(is.na(merge7$desi), NA, 0))
 
 tempstime <- merge7[order(merge7$identif, merge7$anno), ]
+write.table(tempstime, "./tempstime.txt", row.names=FALSE)
 
